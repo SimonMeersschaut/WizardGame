@@ -1,7 +1,7 @@
 [
   [
-    [["ground.png", 0,5, 5,50], ["DarkMinds", 1920,100]],
-    [["ground.png", 0,5, 15,50], ["DarkMinds", 1920,100]],
+    [["ground.png", 0,8, 15,9], ["DarkMinds", 1920,100]],
+    [["ground.png", 0,8, 15,9], ["DarkMinds", 1920,100]],
     [["ground.png", 0,5, 15,7], ["DarkMinds", 1920,100]],
     [["ground.png", 0,5, 15,7], ["DarkMinds", 1920,100]],
     [["ground.png", 0,5, 15,7], ["DarkMinds", 1920,100]],

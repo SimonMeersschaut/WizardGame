@@ -34,7 +34,7 @@ class Magic:
     Magic.current_spells = []
     Magic.conjuring = ""
 
-    Magic.CIRCLE_OFFSET = (Screen.window_width/2, Screen.window_height)
+    Magic.CIRCLE_OFFSET = (Screen.window_width/2, Magic.CIRCLE_DIST*2.5) #Screen.window_height-Magic.CIRCLE_DIST/2
     Magic.combination = None
 
     #Generate ball positions
@@ -42,8 +42,7 @@ class Magic:
     Magic.ball_positions = []
     for y in range(-2*Magic.CIRCLE_DIST, 1*Magic.CIRCLE_DIST, Magic.CIRCLE_DIST):
       for x in range(-1*Magic.CIRCLE_DIST, 2*Magic.CIRCLE_DIST, Magic.CIRCLE_DIST):
-        print(y)
-        Magic.ball_positions.append((x+Magic.CIRCLE_OFFSET[0],y+Magic.CIRCLE_OFFSET[1]-Magic.CIRCLE_DIST/2))
+        Magic.ball_positions.append((x+Magic.CIRCLE_OFFSET[0],y+Magic.CIRCLE_OFFSET[1]))
     Magic.current_spells = []
 
   @Screen.onRender('game')
@@ -54,7 +53,6 @@ class Magic:
       'no points':[(100,100,100), (100,100,100)]
     }
     autocomplete = Magic.autocomplete()
-    print(autocomplete)
     if Magic.injuring:
       for index, position in enumerate(Magic.ball_positions):
         
@@ -103,13 +101,12 @@ class Magic:
         if dist <= Magic.CIRCLE_RADIUS:
           if len(Magic.activated_balls) == 0 or index not in Magic.activated_balls:
             Magic.activated_balls.append(int(index))
-            print(Magic.activated_balls)
             
     else:
       Magic.check_spell()
       Magic.activated_balls = []
     Magic.ball_color()
-    GLOBAL.variables['characters'].wizard.floating = bool(''.join([str(number) for number in Magic.activated_balls]) == '14')
+    GLOBAL.variables['characters'].wizard.floating = bool(''.join([str(number) for number in Magic.activated_balls]) == '14' and (GLOBAL.variables['characters'].wizard.y_speed > 3 or GLOBAL.variables['characters'].wizard.floating))
   def ball_color():
     combination = None
     spell_combination = ''.join([str(number) for number in Magic.activated_balls])

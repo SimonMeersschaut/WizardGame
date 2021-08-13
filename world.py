@@ -1,3 +1,4 @@
+from random import randint
 from global_variables import GLOBAL
 from screen import Screen
 from json import load
@@ -6,19 +7,20 @@ class World:
 
   current_level = []
   map = []
-  height = 50
-  width = 50
-  square_size = 100
+  height = 20
+  width = 64
+  square_size = 128
   standables = ['ground']
   grounds = ['ground.png', 'ground_bottom.png']
   world = 0
   level = -1
   finish_x = 0
   def init():
-    World.current_level = []
     World.next_level()
   def get_level(world, level):
+
     World.map = [[None for y in range(World.height)] for x in range(World.width)]
+    World.current_level = []
     with open('levels.json', 'r') as f:
       file_content = load(f)[world][level]
       for commando in file_content:
@@ -34,12 +36,20 @@ class World:
               for y in range(starty, eindy):
                 World.map[x][y] = img
                 World.current_level.append([img, x*World.square_size, y*World.square_size])
+      World.spawn_grass()
       print(file_content)
       x, y = (file_content[0][3], file_content[0][2]-1)
       World.map[x][y] = 'finish.png'
       World.current_level.append(['finish.png', x*World.square_size, y*World.square_size])
       World.finish_x = x*World.square_size
     return World.current_level
+  def spawn_grass():
+    for x, stroke in enumerate(World.map):
+      for y, block in enumerate(stroke):
+        if block == 'ground.png' and World.map[x][y-1] == None:
+          print('grass', x, y)
+          World.current_level.append(['grass.png', x*World.square_size, (y-1)*World.square_size])
+          
   def next_level():
     World.level += 1
     #with open('levels.json', 'r') as f:
@@ -66,7 +76,7 @@ class World:
         World.map[round(xpos/World.square_size)][round(ypos/World.square_size)] = 'ground_bottom.png'
         World.current_level[index][0] = 'ground_bottom.png'
       
-      Screen.renderIMG(obj, (xpos-GLOBAL.variables["camera"].x, ypos))
+      Screen.renderIMG(obj, (xpos-GLOBAL.variables["camera"].x, ypos), resize = 2)
    
   def get_square(xpos, ypos):
     xv, yv = (int(xpos/World.square_size), int(ypos/World.square_size))

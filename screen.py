@@ -34,7 +34,7 @@ class Screen:
     cls.mousePos = (0,0)
     
   def check_events():
-    Screen.frame_speed = (time()-Screen.last_time)*60
+    Screen.frame_speed = 1/((time()-Screen.last_time)*60)
     Screen.last_time = time()
     Screen.events = pygame.event.get()
     Screen.event_types = [event.type for event in Screen.events]
@@ -88,21 +88,25 @@ class Screen:
 #      if cls.state == updateState:
 #        function()
 
-  def loadIMG(path):
+  def loadIMG(path, resize=False):
     if not path in Screen.imgs:
-      Screen.imgs.update({path:pygame.image.load(path)})
+      img = pygame.image.load(path)
+      if resize:
+        img = Screen.scale(img, resize)
+      Screen.imgs.update({path:img})
+    print('loaded img')
 
   #def blitIMG(img, pos):
   #  Screen.display.blit(img, pos)
   def returnImage(path):
     return pygame.image.load(path)
-  def renderIMG(path, pos):
-    try:
+  def renderIMG(path, pos, resize = False):
+    if -GLOBAL.variables['world'].square_size < pos[0] < Screen.window_width:
       if not( path in Screen.imgs):
-        Screen.loadIMG(path)
+        Screen.loadIMG(path, resize=resize)
       Screen.display.blit(Screen.imgs[path], pos)
-    except TypeError:
-      Screen.display.blit(path, pos)
+  def renderSurface(surface, pos):
+    Screen.display.blit(surface, pos)
   def blitRotate(image, pos, originPos, angle):
     surf = Screen.display
     # calcaulate the axis aligned bounding box of the rotated image

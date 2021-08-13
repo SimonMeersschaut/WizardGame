@@ -6,7 +6,7 @@ from global_variables import GLOBAL
 #from main import returnToMainMenu
 class Wizard:
   WALK_SPEED = 5
-  JUMP_HEIGHT = 15
+  JUMP_HEIGHT = 20
   def __init__(self):
     #SETUP VERIABLES
     self.screen = GLOBAL.variables["screen"]
@@ -38,7 +38,7 @@ class Wizard:
       supported = False
     
     #RENDERING ALL IMGS
-    self.screen.renderIMG(self.imgs[self.direction], (self.x-GLOBAL.variables["camera"].x, self.y))
+    self.screen.renderSurface(self.imgs[self.direction], (self.x-GLOBAL.variables["camera"].x, self.y))
     self.screen.blitRotate(self.arm, (arm[0]-GLOBAL.variables["camera"].x, arm[1]), (0,26), self.arm_angle)
     #if GLOBAL.variables['magic'].conjuring != '':
     #  self.screen.draw_circle((self.x+64*2, self.y+23*2), radius=10, color=GLOBAL.variables['magic'].COLORS[GLOBAL.variables['magic'].conjuring])
@@ -56,7 +56,7 @@ class Wizard:
       self.y_speed -= self.JUMP_HEIGHT
     a = self.arm_angle_tartget - self.arm_angle
     a = (a + 180) % 360 - 180
-    self.arm_angle_tartget = 0
+    self.arm_angle_tartget = 87
     increment = ((abs(a)/10)+0.25)*self.screen.frame_speed
     if a > increment:
       self.arm_angle += increment
@@ -66,13 +66,13 @@ class Wizard:
       if self.y_speed > 0:
         self.y_speed = 0
         print('positie'+str(self.y))
-        self.y = int((self.y)/self.world.square_size+1)*self.world.square_size-20
+        self.y = int((self.y)/self.world.square_size)*self.world.square_size#-50
     if not supported:
-      self.y_speed += 0.5*self.screen.frame_speed
+      self.y_speed += 1*self.screen.frame_speed
     if self.floating and GLOBAL.variables['magic'].points > 0:
       self.arm_angle_tartget = -90
       GLOBAL.variables['magic'].points -= 0.1*self.screen.frame_speed
-      self.y_speed = min(max(0, self.y_speed-0.75),self.y_speed)
+      self.y_speed = min(max(0, self.y_speed-(1.2*self.screen.frame_speed)),self.y_speed)
       GLOBAL.variables['magic'].conjuring = 'movement'
     
 
