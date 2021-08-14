@@ -1,4 +1,6 @@
+from time import time
 #from characters import Characters
+from settings import Settings
 from characters import Wizard
 from global_variables import GLOBAL
 from screen import Screen
@@ -13,17 +15,26 @@ class Shield:
     self.y = y
   def render(self):
     Screen.renderIMG(self.image, (self.x-GLOBAL.variables["camera"].x, self.y))
+class Dash:
+  def __init__(self, x, y):
+    GLOBAL.variables['characters'].wizard.x += 75
+  def render(self):
+    pass
 class Magic:
   #SPELLS
   SPELLS = {
     #CODE:(OBJECT, MP)
     "046":(Shield, 10),
-    "14":(None, 0)
+    "14":(None, 0),
+    '45':(Dash, 1)
     
   }
   points = 0
-  CIRCLE_DIST = 150
-  CIRCLE_RADIUS = 50
+  refreshed = 0
+  spawned = False
+  used_balls = False
+  CIRCLE_DIST = 50
+  CIRCLE_RADIUS = 20
   COLORS = {
     'movement':(0,0,255)
   }
@@ -34,7 +45,7 @@ class Magic:
     Magic.current_spells = []
     Magic.conjuring = ""
 
-    Magic.CIRCLE_OFFSET = (Screen.window_width/2, Magic.CIRCLE_DIST*2.5) #Screen.window_height-Magic.CIRCLE_DIST/2
+    Magic.CIRCLE_OFFSET = (Magic.CIRCLE_DIST*1.5, Magic.CIRCLE_DIST*2.5) #Screen.window_height-Magic.CIRCLE_DIST/2
     Magic.combination = None
 
     #Generate ball positions
@@ -95,16 +106,29 @@ class Magic:
               broke = True
     return autocomplete
   def check_balls():
-    if Screen.mouseDown:
-      for index, position in enumerate(Magic.ball_positions):
-        dist = Magic.get_dist(position, Screen.mousePos)
-        if dist <= Magic.CIRCLE_RADIUS:
-          if len(Magic.activated_balls) == 0 or index not in Magic.activated_balls:
-            Magic.activated_balls.append(int(index))
-            
-    else:
-      Magic.check_spell()
+    keys  = [setting_key[0] for setting_key in GLOBAL.variables["settings"].keys if 'ball_' in setting_key[0]]
+    balls = [index for index, key in enumerate(keys) if key in GLOBAL.variables["screen"].keys]
+    tijd = time()
+    for ball in balls:
+      if ball not in Magic.activated_balls:
+        Magic.activated_balls.append(ball)
+        Magic.refreshed = tijd
+        Magic.used = False
+    
+    if (tijd-Magic.refreshed > 0.4 and balls == []) or (Magic.used and balls == []) or Magic.spawned:
       Magic.activated_balls = []
+      Magic.used = False
+      Magic.spawned = False
+    #if Screen.mouseDown:
+    #  for index, position in enumerate(Magic.ball_positions):
+    #    dist = Magic.get_dist(position, Screen.mousePos)
+    #    if dist <= Magic.CIRCLE_RADIUS:
+    #      if len(Magic.activated_balls) == 0 or index not in Magic.activated_balls:
+    #        Magic.activated_balls.append(int(index))
+    #        
+    #else:
+    Magic.check_spell()
+    #  Magic.activated_balls = []
     Magic.ball_color()
     GLOBAL.variables['characters'].wizard.floating = bool(''.join([str(number) for number in Magic.activated_balls]) == '14' and (GLOBAL.variables['characters'].wizard.y_speed > 3 or GLOBAL.variables['characters'].wizard.floating))
   def ball_color():
@@ -124,11 +148,11 @@ class Magic:
     for spell_name in Magic.SPELLS:
       obj, spell_points = Magic.SPELLS[spell_name]
       if spell_combination == spell_name:
+        Magic.used = True
+        print('right combination')
         if Magic.points > spell_points:
           Magic.points -= spell_points
-          try:
+          if obj != None:
+            print('spawn ', obj)
             Magic.current_spells.append(obj(GLOBAL.variables['characters'].wizard.x+63, GLOBAL.variables['characters'].wizard.y+24))
-          except TypeError:
-            pass
-          
-    
+            Magic.spawned = True

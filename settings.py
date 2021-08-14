@@ -5,7 +5,16 @@ class Settings:
   keys = [
     ['k_left', 'q'],
     ['k_right', 'd'],
-    ['k_jump', ' ']
+    ['k_jump', ' '],
+    ['k_ball_1', '7'],
+    ['k_ball_2', '8'],
+    ['k_ball_3', '9'],
+    ['k_ball_4', '4'],
+    ['k_ball_5', '5'],
+    ['k_ball_6', '6'],
+    ['k_ball_7', '1'],
+    ['k_ball_8', '2'],
+    ['k_ball_9', '3']
   ]
   attrs = [
     ['fps', 30],

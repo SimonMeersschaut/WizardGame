@@ -59,15 +59,29 @@ class Screen:
     for let in Settings.keys:
       for event in Screen.events:
         if event.type == pygame.KEYDOWN:
-          print(ord(let[1]))
-          if ord(let[1]) == event.key:
-            Screen.keys.append(let[1])
+          if len(let[1]) == 1:
+            key = ord(let[1])
+            if key == event.key:
+              Screen.keys.append(let[1])
+          else:
+            key = int(let[1])
+            if key == event.key:
+              Screen.keys.append(let[0])
         if event.type == pygame.KEYUP:
-          if ord(let[1]) == event.key:
-            try:
-              Screen.keys.remove(let[1])
-            except ValueError:
-              pass
+          if len(let[1]) == 1:
+            key = ord(let[1])
+            if key == event.key:
+              try:
+                Screen.keys.remove(let[1])
+              except ValueError:
+                pass
+          else:
+            key = int(let[1])
+            if key == event.key:
+              try:
+                Screen.keys.remove(let[0])
+              except ValueError:
+                pass
 
   
   def render():
@@ -164,15 +178,11 @@ class Screen:
     return decorator
 
 class Camera:
-  x = 50
+  x = -200
   def init():
-    Camera.x = 0
+    Camera.x = -200
   def render():
-    if GLOBAL.variables["characters"].characters[0].x - Camera.x > GLOBAL.variables["screen"].window_width/2:
-      Camera.x += 1 
-
-def init():
-  Screen.init()
-def start_level(world, level):
-  init()
-  World.get_level(world, level)
+    if GLOBAL.variables["characters"].characters[0].x - Camera.x > GLOBAL.variables["screen"].window_width*0.7:
+      Camera.x += 5
+    if GLOBAL.variables["characters"].characters[0].x - Camera.x < GLOBAL.variables["screen"].window_width*0.1:
+      Camera.x -= 5
