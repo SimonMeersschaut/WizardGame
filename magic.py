@@ -13,11 +13,13 @@ class Shield:
     print('Shield activated')
     self.x = x
     self.y = y
+    self.exist = True
   def render(self):
     Screen.renderIMG(self.image, (self.x-GLOBAL.variables["camera"].x, self.y))
 class Dash:
   def __init__(self, x, y):
     GLOBAL.variables['characters'].wizard.x += 75
+    self.exist = False
   def render(self):
     pass
 class Magic:
@@ -33,6 +35,7 @@ class Magic:
   refreshed = 0
   spawned = False
   used_balls = False
+  last_spell = 0
   CIRCLE_DIST = 50
   CIRCLE_RADIUS = 20
   COLORS = {
@@ -76,7 +79,10 @@ class Magic:
         Screen.draw_circle(position, radius=Magic.CIRCLE_RADIUS, border_width=Magic.CIRCLE_RADIUS, color=ball_color)
       Magic.check_balls()
     for spell in Magic.current_spells:
-      spell.render()
+      if spell.render:
+        spell.render()
+      else:
+        Magic.current_spells.delete(spell)
     #RENDER LOADING BAR
     x, y = (GLOBAL.variables['screen'].window_width-210,10)
     GLOBAL.variables['screen'].draw_rect(x, y, Magic.points*2, 40)
@@ -106,19 +112,21 @@ class Magic:
               broke = True
     return autocomplete
   def check_balls():
-    keys  = [setting_key[0] for setting_key in GLOBAL.variables["settings"].keys if 'ball_' in setting_key[0]]
-    balls = [index for index, key in enumerate(keys) if key in GLOBAL.variables["screen"].keys]
     tijd = time()
-    for ball in balls:
-      if ball not in Magic.activated_balls:
-        Magic.activated_balls.append(ball)
-        Magic.refreshed = tijd
+    if tijd-Magic.last_spell > 1:
+      keys  = [setting_key[0] for setting_key in GLOBAL.variables["settings"].keys if 'ball_' in setting_key[0]]
+      balls = [index for index, key in enumerate(keys) if key in GLOBAL.variables["screen"].keys]
+      
+      for ball in balls:
+        if ball not in Magic.activated_balls:
+          Magic.activated_balls.append(ball)
+          Magic.refreshed = tijd
+          Magic.used = False
+      Magic.activated_balls = sorted(Magic.activated_balls)
+      if (tijd-Magic.refreshed > 0.4 and balls == []) or (Magic.used and balls == []):
+        Magic.activated_balls = []
         Magic.used = False
-    
-    if (tijd-Magic.refreshed > 0.4 and balls == []) or (Magic.used and balls == []) or Magic.spawned:
-      Magic.activated_balls = []
-      Magic.used = False
-      Magic.spawned = False
+        Magic.spawned = False
     #if Screen.mouseDown:
     #  for index, position in enumerate(Magic.ball_positions):
     #    dist = Magic.get_dist(position, Screen.mousePos)
@@ -153,6 +161,8 @@ class Magic:
         if Magic.points > spell_points:
           Magic.points -= spell_points
           if obj != None:
+            Magic.activated_balls = []
             print('spawn ', obj)
             Magic.current_spells.append(obj(GLOBAL.variables['characters'].wizard.x+63, GLOBAL.variables['characters'].wizard.y+24))
             Magic.spawned = True
+            Magic.last_spell = time()

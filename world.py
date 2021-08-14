@@ -62,7 +62,10 @@ class World:
       GLOBAL.variables['camera'].init()
     except KeyError:
       pass
-    World.get_level(World.world, World.level)
+    try:
+      World.get_level(World.world, World.level)
+    except IndexError:
+      World.world += 1
   #def gen_map():
   #    #input(World.current_level)
   #    for (obj, x, y) in World.current_level:
