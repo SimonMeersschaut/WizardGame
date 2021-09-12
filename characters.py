@@ -65,10 +65,14 @@ class Wizard:
     #MOVEMENT
     self.direction = 'static'
     if GLOBAL.variables["settings"].k_left in self.screen.keys:
-      self.x -= self.WALK_SPEED*self.screen.frame_speed
-      self.direction = 'left'
+      pos = (left_feed[0]-15, left_feed[1]-10)
+      if not(self.world.get_block(pos) in self.world.standables):
+        self.x -= self.WALK_SPEED*self.screen.frame_speed
+        self.direction = 'left'
     elif GLOBAL.variables["settings"].k_right in self.screen.keys:
-      self. x += self.WALK_SPEED*self.screen.frame_speed
+      pos = (right_feed[0]+10, right_feed[1]-10)
+      if not(self.world.get_block(pos) in self.world.standables):
+        self. x += self.WALK_SPEED*self.screen.frame_speed
       self.direction = 'right'
     if GLOBAL.variables["settings"].k_jump in self.screen.keys and supported:
       self.y_speed -= self.JUMP_HEIGHT
@@ -102,7 +106,7 @@ class Wizard:
       GLOBAL.variables["world"].returnToMainMenu()
 
 class DarkMinds:
-  SPEED = 1
+  SPEED = 3
   def __init__(self, x, y):
     self.x = x
     self.y = y

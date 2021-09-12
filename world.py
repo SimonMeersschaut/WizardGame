@@ -9,7 +9,7 @@ class World:
   current_level = []
   map = []
   height = 20
-  width = 64
+  width = 90
   square_size = 128
   standables = ['ground']
   grounds = ['ground.png', 'ground_bottom.png']
@@ -20,54 +20,64 @@ class World:
     World.level = 0
     World.world = 0
     World.time_limit = 0
+    World.level_time_limit = 1
     World.time_started = 0
     World.next_level()
+
   def get_level(world, level):
 
     World.map = [[None for y in range(World.height)] for x in range(World.width)]
     World.current_level = []
     finish_x = 0
-    with open('levels.json', 'r') as f:
-      file_content = load(f)[world][level]
-      World.time_limit = time()+file_content[-1]
-      World.level_time_limit = file_content[-1]
-      file_content = file_content[:-1]
-      for commando in file_content:
-        if commando[0] in Characters.NAMES:
-          Characters.createNew(commando)
-        else:
-          if len(commando) == 5:
-            img, startx, starty, eindx, eindy = commando
-          else:
-            img, startx, starty = commando
-            eindx = startx
-            eindy = starty
-          finish_x = max(finish_x, eindx)
-          #if startx == eindx:
-          #  eindx += 1
-          #if starty == eindy:
-          #  eindy += 1
-          if abs(startx-eindx) > 0 and abs(starty-eindy) > 0:
-            for x in range(startx, eindx):
-              for y in range(starty, eindy):
-                World.map[x][y] = img
-                World.current_level.append([img, (x)*World.square_size, y*World.square_size])
-          else:
-            
-            World.map[startx][starty] = img
-            World.current_level.append([img, (startx)*World.square_size, starty*World.square_size])
-      x, y = (finish_x, 9)
-      World.map[x-1][y] = 'finish.png'
-      World.spawn_grass()
-      World.current_level.append(['finish.png', (finish_x-1)*World.square_size, 9*World.square_size])
-      World.finish_x = (x-1)*World.square_size
+    print('get level')
+    with open('world.json', 'r') as f:
+      print('start')
+      file_content = load(f)['levels'][0]
+      print(file_content)
+      World.time_limit = time()+100#time()+file_content[-1]
+      World.level_time_limit = time()+100# file_content[-1]
+      finish_x = 0
+      for name, x, y in file_content:
+        World.map[x][y] = name
+        xpos, ypos = ((x)*World.square_size, (y)*World.square_size)
+        finish_x = max(finish_x, xpos)
+        World.current_level.append([name, xpos, ypos])
+        print(name, x, y)
+        #if commando[0] in Characters.NAMES:
+        #  Characters.createNew(commando)
+        #else:
+        #  if len(commando) == 5:
+        #    img, startx, starty, eindx, eindy = commando
+        #  else:
+        #    img, startx, starty = commando
+        #    eindx = startx
+        #    eindy = starty
+        #  finish_x = max(finish_x, eindx)
+        #  #if startx == eindx:
+        #  #  eindx += 1
+        #  #if starty == eindy:
+        #  #  eindy += 1
+        #  if abs(startx-eindx) > 0 and abs(starty-eindy) > 0:
+        #    for x in range(startx, eindx):
+        #      for y in range(starty, eindy):
+        #        World.map[x][y] = img
+        #        World.current_level.append([img, (x)*World.square_size, y*World.square_size])
+        #  else:
+        #    
+        #    World.map[startx][starty] = img
+        #    World.current_level.append([img, (startx)*World.square_size, starty*World.square_size])
+    x, y = (int(finish_x/World.square_size), 5)
+    World.map[x-1][y] = 'finish.png'
+    World.spawn_grass()
+    World.current_level.append(['finish.png', finish_x, 5*World.square_size])
+    World.finish_x = finish_x
     return World.current_level
   def spawn_grass():
-    for x, stroke in enumerate(World.map):
-      for y, block in enumerate(stroke):
-        if block == 'ground.png' and World.map[x][y-1] == None:
-          World.current_level.append(['grass.png', x*World.square_size, (y-1)*World.square_size])
-          
+    print(World.current_level)
+    for block, x, y in World.current_level:
+      if block == 'ground.png' and World.get_block(x, y-World.square_size) == None:
+        World.current_level.append(['grass.png', x, y-World.square_size])
+        print('grass')
   def next_level():
     World.level += 1
     #with open('levels.json', 'r') as f:
@@ -78,10 +88,10 @@ class World:
     Characters.init()
     GLOBAL.variables['magic'].init()
     GLOBAL.variables['camera'].init()
-    try:
-      World.get_level(World.world, World.level)
-    except IndexError:
-      World.world += 1
+    #try:
+    World.get_level(World.world, World.level)
+    #except IndexError:
+    #  World.world += 1
   #def gen_map():
   #    #input(World.current_level)
   #    for (obj, x, y) in World.current_level:
@@ -103,13 +113,16 @@ class World:
     xv, yv = (int(xpos/World.square_size), int(ypos/World.square_size))
     return (xv, yv)
   def get_block(xposition, yposition=None):
-    if yposition == None:
-      xposition, yposition = xposition
-    (xvak, yvak) = World.get_square(xposition, yposition)
-    vak = World.map[xvak][yvak]
-    if '.' in str(vak):
-      return vak.split('.')[0]
-    return vak
+    try:
+      if yposition == None:
+        xposition, yposition = xposition
+      (xvak, yvak) = World.get_square(xposition, yposition)
+      vak = World.map[xvak][yvak]
+      if '.' in str(vak):
+        return vak.split('.')[0]
+      return vak
+    except IndexError:
+      return None
   def returnToMainMenu():
     Screen.state = 'main_menu'
     GLOBAL.variables['main_menu'].init()
