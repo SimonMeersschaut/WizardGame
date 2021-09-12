@@ -1,6 +1,6 @@
 from math import sqrt
 from json import load
-#from characters import Characters
+from characters import Wizard
 import pygame
 #from pygame.time import Clock
 from time import time
@@ -10,7 +10,6 @@ class Screen:
   render_functions = []
   @classmethod
   def init(cls):
-    print('startings init')
     import pygame
     pygame.init()
     cls.clock = pygame.time.Clock()
@@ -20,7 +19,6 @@ class Screen:
     cls.window_width = infoObject.current_w
     cls.display = pygame.display.set_mode((cls.window_width, cls.window_height), pygame.FULLSCREEN)
     cls.render_functions = []
-    print(cls.render_functions)
     cls.bg_color = (255,255,255)
     cls.state = 'starting'
     cls.events = []
@@ -39,7 +37,6 @@ class Screen:
     Screen.events = pygame.event.get()
     Screen.event_types = [event.type for event in Screen.events]
     if pygame.QUIT in Screen.event_types:
-      print('ended game due to exit button')
       Screen.running = False
     if pygame.MOUSEBUTTONDOWN in Screen.event_types:
       Screen.mouseDown = True
@@ -108,7 +105,6 @@ class Screen:
       if resize:
         img = Screen.scale(img, resize)
       Screen.imgs.update({path:img})
-    print('loaded img')
 
   #def blitIMG(img, pos):
   #  Screen.display.blit(img, pos)
@@ -148,8 +144,8 @@ class Screen:
   def scale(surface, scale):
     size = (64*scale, 64*scale)
     return pygame.transform.scale(surface, size)
-  def draw_rect(x1, y1, x2, y2, color=(0,0,0)):
-    pygame.draw.rect(Screen.display, color, (x1, y1, x2, y2))
+  def draw_rect(x1, y1, w, h, color=(0,0,0)):
+    pygame.draw.rect(Screen.display, color, (x1, y1, w, h))
   def draw_circle(pos, radius=10, border_width=5, color=(0,0,0)):
       pygame.draw.circle(Screen.display, color, pos, radius, border_width)
   def draw_line(pos1, pos2, color=(0,0,0), width=5):
@@ -157,7 +153,6 @@ class Screen:
   def click(x1, y1, x2, y2):
     def decorator(f):
         Screen.clickListener.append([[x1, y1, x2, y2], f])
-        print('gezet')
         return f
 
     return decorator
@@ -172,17 +167,27 @@ class Screen:
 
     def decorator(f):
         Screen.render_functions.append([state, f])
-        print('gezet')
         return f
 
     return decorator
 
 class Camera:
   x = -200
+  hor_speed = 0
   def init():
     Camera.x = -200
   def render():
-    if GLOBAL.variables["characters"].characters[0].x - Camera.x > GLOBAL.variables["screen"].window_width*0.7:
-      Camera.x += 5
-    if GLOBAL.variables["characters"].characters[0].x - Camera.x < GLOBAL.variables["screen"].window_width*0.1:
-      Camera.x -= 5
+    #if GLOBAL.variables["characters"].characters[0].x - Camera.x > GLOBAL.variables["screen"].window_width*0.7:
+    #  if not Camera.x+1920 > GLOBAL.variables["world"].finish_x+100:
+    #    Camera.hor_speed += ((GLOBAL.variables["characters"].characters[0].x - Camera.x)-(GLOBAL.variables["screen"].window_width*0.7))/100
+    #if GLOBAL.variables["characters"].characters[0].x - Camera.x < GLOBAL.variables["screen"].window_width*0.2:
+    #  Camera.hor_speed += ((GLOBAL.variables["characters"].characters[0].x - Camera.x)-(GLOBAL.variables["screen"].window_width*0.2))/100
+    afstand_midden = (GLOBAL.variables["characters"].characters[0].x - Camera.x)-GLOBAL.variables["screen"].window_width*0.5
+    if afstand_midden > 0:
+      Camera.x += (afstand_midden)/50
+    elif afstand_midden < -500:
+      Camera.x += (afstand_midden)/200
+      
+    #Camera.hor_speed += ((GLOBAL.variables["characters"].characters[0].x - Camera.x)-(GLOBAL.variables["screen"].window_width*0.7))/500
+    #Camera.x += Camera.hor_speed
+
