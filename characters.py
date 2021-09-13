@@ -70,7 +70,7 @@ class Wizard:
         self.x -= self.WALK_SPEED*self.screen.frame_speed
         self.direction = 'left'
     elif GLOBAL.variables["settings"].k_right in self.screen.keys:
-      pos = (right_feed[0]+10, right_feed[1]-10)
+      pos = (right_feed[0]+15, right_feed[1]-10)
       if not(self.world.get_block(pos) in self.world.standables):
         self. x += self.WALK_SPEED*self.screen.frame_speed
       self.direction = 'right'

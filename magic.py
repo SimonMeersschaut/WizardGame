@@ -84,9 +84,9 @@ class Magic:
   @Screen.onRender('game')
   def render():
     colors = {
-      None:[(0,0,0), (40,40,40)],
-      'right':[(0,0,0), (70,70,70)],
-      'no points':[(100,100,100), (100,100,100)]
+      None:[(0,0,0), (120,120,120)],
+      'right':[(20,20,20), (180,180,180)],
+      'no points':[(80,80,80), (255,100,100)]
     }
     autocomplete = Magic.autocomplete()
     if Magic.injuring:

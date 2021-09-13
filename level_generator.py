@@ -83,6 +83,7 @@ def save():
     }
   with open('world.json', 'w+') as f:
     json.dump(json_file, f)
+  exit()
 
 def load():
   files = glob.glob('*.json')

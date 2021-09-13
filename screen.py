@@ -1,5 +1,7 @@
 from math import sqrt
 from json import load
+
+from pygame.constants import SCALED
 from characters import Wizard
 import pygame
 #from pygame.time import Clock
@@ -83,6 +85,7 @@ class Screen:
   
   def render():
     Screen.display.fill(Screen.bg_color)
+    Screen.renderIMG('background.jpg', (0-(Camera.x/50),-20), resize=2, full_scale=True)
     if Screen.state == 'game':
       GLOBAL.variables["characters"].render()
       GLOBAL.variables["world"].render()
@@ -99,22 +102,33 @@ class Screen:
 #      if cls.state == updateState:
 #        function()
 
-  def loadIMG(path, resize=False):
+  def loadIMG(path, resize=False, full_scale=False):
+    path = 'textures/'+path
     if not path in Screen.imgs:
-      img = pygame.image.load(path)
+      try:
+        img = pygame.image.load(path)
+      except FileNotFoundError:
+        input('FileNotFound: '+path)
       if resize:
-        img = Screen.scale(img, resize)
+        if full_scale:
+          size = img.get_rect()
+          #input(resize)
+          size = (size.size[0]*resize, size.size[1]*resize)
+          img = Screen.scale_img(img, size)
+        else:
+          
+          img = Screen.scale(img, resize)
       Screen.imgs.update({path:img})
 
   #def blitIMG(img, pos):
   #  Screen.display.blit(img, pos)
   def returnImage(path):
-    return pygame.image.load(path)
-  def renderIMG(path, pos, resize = False):
+    return pygame.image.load("textures/"+path)
+  def renderIMG(path, pos, resize = False, full_scale=False):
     if -GLOBAL.variables['world'].square_size < pos[0] < Screen.window_width:
       if not( path in Screen.imgs):
-        Screen.loadIMG(path, resize=resize)
-      Screen.display.blit(Screen.imgs[path], pos)
+        Screen.loadIMG(path, resize=resize, full_scale=full_scale)
+      Screen.display.blit(Screen.imgs['textures/'+path], pos)
   def renderSurface(surface, pos):
     Screen.display.blit(surface, pos)
   def blitRotate(image, pos, originPos, angle):
@@ -141,6 +155,8 @@ class Screen:
 
     # draw rectangle around the image
     #pygame.draw.rect (surf, (255, 0, 0), (*origin, *rotated_image.get_size()),2)
+  def scale_img(surface, size):
+    return pygame.transform.scale(surface, size)
   def scale(surface, scale):
     size = (64*scale, 64*scale)
     return pygame.transform.scale(surface, size)

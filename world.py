@@ -29,6 +29,7 @@ class World:
     World.map = [[None for y in range(World.height)] for x in range(World.width)]
     World.current_level = []
     finish_x = 0
+    finish_y = 100
     print('get level')
     with open('world.json', 'r') as f:
       print('start')
@@ -40,9 +41,11 @@ class World:
       for name, x, y in file_content:
         World.map[x][y] = name
         xpos, ypos = ((x)*World.square_size, (y)*World.square_size)
-        finish_x = max(finish_x, xpos)
+        if xpos >= finish_x:
+          finish_x = xpos
+          finish_y = min(finish_y, ypos)
+        
         World.current_level.append([name, xpos, ypos])
-        print(name, x, y)
         #if commando[0] in Characters.NAMES:
         #  Characters.createNew(commando)
         #else:
@@ -66,11 +69,13 @@ class World:
         #    
         #    World.map[startx][starty] = img
         #    World.current_level.append([img, (startx)*World.square_size, starty*World.square_size])
-    x, y = (int(finish_x/World.square_size), 5)
+    x, y = (int(finish_x/World.square_size), int(finish_y/World.square_size))
     World.map[x-1][y] = 'finish.png'
     World.spawn_grass()
-    World.current_level.append(['finish.png', finish_x, 5*World.square_size])
+    World.set_bottoms()
+    World.current_level.append(['finish.png', finish_x, finish_y])
     World.finish_x = finish_x
+
     return World.current_level
   def spawn_grass():
     print(World.current_level)
@@ -78,6 +83,13 @@ class World:
       if block == 'ground.png' and World.get_block(x, y-World.square_size) == None:
         World.current_level.append(['grass.png', x, y-World.square_size])
         print('grass')
+  def set_bottoms():
+    BOTTOMS = ['ground.png', 'spikes.png']
+    for index, (obj, xpos, ypos) in enumerate(World.current_level):
+      if obj in BOTTOMS and (World.map[round(xpos/World.square_size)][round(ypos/World.square_size)-1] in World.grounds or World.map[round(xpos/World.square_size)][round(ypos/World.square_size)-1] in BOTTOMS):
+        new_name = obj.split('.')[0]+'_bottom.'+obj.split('.')[1]
+        World.map[round(xpos/World.square_size)][round(ypos/World.square_size)] = new_name
+        World.current_level[index][0] = new_name
   def next_level():
     World.level += 1
     #with open('levels.json', 'r') as f:
@@ -100,10 +112,6 @@ class World:
   def render():
     for index, (obj, xpos, ypos) in enumerate(World.current_level):
 
-      if obj == 'ground.png' and World.map[round(xpos/World.square_size)][round(ypos/World.square_size)-1] in World.grounds:
-        World.map[round(xpos/World.square_size)][round(ypos/World.square_size)] = 'ground_bottom.png'
-        World.current_level[index][0] = 'ground_bottom.png'
-      
       Screen.renderIMG(obj, (xpos-GLOBAL.variables["camera"].x, ypos), resize = 2)
     width, height = ((World.time_limit-time())/World.level_time_limit*1500,50)
     x1 = 200
