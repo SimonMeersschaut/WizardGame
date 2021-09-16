@@ -3,10 +3,12 @@ from global_variables import GLOBAL
 from time import time
 
 
+
+
 #from tool import World, Screen, Camera
 #from main import returnToMainMenu
 class Wizard:
-  WALK_SPEED = 6.5
+  WALK_SPEED = 5.0
   SPRINT_SPEED = 10.0
   JUMP_HEIGHT = 25
   JUMP_DELAY = .1
@@ -27,6 +29,7 @@ class Wizard:
       'static':self.screen.scale(self.screen.returnImage('wizard_static.png'), self.scale)
     }
     self.y_speed = 0
+    self.speed = 0
     self.floating = False
     self.exists = True
     self.arm = self.screen.returnImage('arm.png')
@@ -39,7 +42,7 @@ class Wizard:
     left_feed = (self.x+23*self.scale, self.y+64*self.scale)
     right_feed = (self.x+42*self.scale, self.y+64*self.scale)
     arm = (self.x+21*self.scale, self.y+21*self.scale)
-
+    head = (self.x+34*self.scale, self.y+7*self.scale)
     
     try:
       supported = any([(self.world.get_block(position) in self.world.standables) for position in [left_feed, right_feed]])
@@ -79,10 +82,10 @@ class Wizard:
       pos = (right_feed[0]+15, right_feed[1]-10)
       if not(self.world.get_block(pos) in self.world.standables):
         if GLOBAL.variables['settings'].k_sprint in self.screen.keys:
-          speed = Wizard.SPRINT_SPEED
+          self.speed = min(Wizard.SPRINT_SPEED, self.speed+GLOBAL.variables['screen'].frame_speed)
         else:
-          speed = Wizard.WALK_SPEED
-        self. x += speed*self.screen.frame_speed
+          self.speed = Wizard.WALK_SPEED
+        self. x += self.speed*self.screen.frame_speed
       self.direction = 'right'
     if GLOBAL.variables["settings"].k_jump in self.screen.keys and supported and self.jump_available:
       if time()-self.last_jump > Wizard.JUMP_DELAY:
@@ -98,6 +101,10 @@ class Wizard:
     elif a < -increment:
       self.arm_angle -= increment
     if supported:
+      block = GLOBAL.variables['world'].get_block(left_feed)
+      if any([GLOBAL.variables['world'].get_block(position) in block in GLOBAL.variables['world'].deadly for position in [left_feed, right_feed, head]]):
+        GLOBAL.variables['world'].die()
+      #
       if not GLOBAL.variables["settings"].k_jump in self.screen.keys:
         self.jump_available = True
       if self.y_speed > 0:
@@ -112,14 +119,14 @@ class Wizard:
       self.y_speed = min(max(0, self.y_speed-(1.2*self.screen.frame_speed)),self.y_speed)    
 
     if left_feed[1] > self.screen.window_height: #when touch the bottom
-      self.world.returnToMainMenu() #die
+      self.world.die() #die
 
     self.y += self.y_speed*self.screen.frame_speed
     if right_feed[0] >= GLOBAL.variables['world'].finish_x:
       GLOBAL.variables['world'].next_level()
   def hit(self, obj):
     if type(obj) == DarkMinds:
-      GLOBAL.variables["world"].returnToMainMenu()
+      GLOBAL.variables["world"].die()
 
 class DarkMinds:
   SPEED = 3

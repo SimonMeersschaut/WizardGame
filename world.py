@@ -1,3 +1,4 @@
+from math import e
 from random import randint
 from global_variables import GLOBAL
 from screen import Screen
@@ -11,8 +12,9 @@ class World:
   height = 20
   width = 90
   square_size = 128
-  standables = ['ground', 'ground_bottom']
-  grounds = ['ground.png', 'ground_bottom.png']
+  standables = ['ground', 'ground_bottom', 'spikes', 'spikes_bottom']
+  grounds = ['ground.png', 'ground_bottom.png', 'spikes.png', 'spikes_bottom.png']
+  deadly = ['spikes']
   world = 0
   level = -2
   finish_x = 0
@@ -84,31 +86,26 @@ class World:
         World.current_level.append(['grass.png', x, y-World.square_size])
         print('grass')
   def set_bottoms():
-    BOTTOMS = ['ground.png', 'spikes.png']
+    BOTTOMS = ['ground', 'spike']
     for index, (obj, xpos, ypos) in enumerate(World.current_level):
-      if obj in BOTTOMS and (World.map[round(xpos/World.square_size)][round(ypos/World.square_size)-1] in World.grounds or World.map[round(xpos/World.square_size)][round(ypos/World.square_size)-1] in BOTTOMS):
+      if any([obj.split('.')[0] in BOTTOM or BOTTOM in obj.split('.')[0] for BOTTOM in BOTTOMS]) and (World.map[round(xpos/World.square_size)][round(ypos/World.square_size)-1] in World.grounds or World.map[round(xpos/World.square_size)][round(ypos/World.square_size)-1] in BOTTOMS):
         new_name = obj.split('.')[0]+'_bottom.'+obj.split('.')[1]
         World.map[round(xpos/World.square_size)][round(ypos/World.square_size)] = new_name
         World.current_level[index][0] = new_name
+      else:
+        print(obj)
   def next_level():
     World.level += 1
-    #with open('levels.json', 'r') as f:
-    #  if len(load(f)[World.world]) <= World.level:
-    #    World.level = 0
-    #    World.world += 1 
-    World.time_started = time()
+    World.load_level()
+
+  def load_level():
+    World.time_started = time() 
     Characters.init()
     GLOBAL.variables['magic'].init()
     GLOBAL.variables['camera'].init()
     #try:
     World.get_level(World.world, World.level)
-    #except IndexError:
-    #  World.world += 1
-  #def gen_map():
-  #    #input(World.current_level)
-  #    for (obj, x, y) in World.current_level:
-  #      xv, yv = World.get_square(x, y)
-  #      World.map[xv][yv] = obj
+  
   def render():
     for index, (obj, xpos, ypos) in enumerate(World.current_level):
 
@@ -150,6 +147,9 @@ class World:
     if delete_index:
       World.current_level.pop(delete_index)
     
+  def die():
+    World.load_level()
+    #World.returnToMainMenu()
 
 
 #  @classmethod

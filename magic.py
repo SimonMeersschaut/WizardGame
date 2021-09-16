@@ -34,7 +34,15 @@ class Shoot:
 
 class Dash:
   def __init__(self, x, y):
-    GLOBAL.variables['characters'].wizard.x += 200
+    possible = True
+    distance = 400
+    y = GLOBAL.variables['characters'].wizard.y
+    for x in range(int(GLOBAL.variables['characters'].wizard.x), int(GLOBAL.variables['characters'].wizard.x+distance), int(GLOBAL.variables['world'].square_size/2)):
+      block = GLOBAL.variables['world'].get_block(x, y)
+      if block in GLOBAL.variables['world'].grounds or block in GLOBAL.variables['world'].standables:
+        possible = False
+    if possible:
+      GLOBAL.variables['characters'].wizard.x += distance
     self.exists = False
   def render(self):
     pass
