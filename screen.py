@@ -85,7 +85,7 @@ class Screen:
   
   def render():
     Screen.display.fill(Screen.bg_color)
-    Screen.renderIMG('background.jpg', (0-(Camera.x/50),-20), resize=2, full_scale=True)
+    Screen.renderIMG('background.jpg', (0-(Camera.x/25),-20), resize=2, full_scale=True, visible=1920)
     if Screen.state == 'game':
       GLOBAL.variables["characters"].render()
       GLOBAL.variables["world"].render()
@@ -124,8 +124,8 @@ class Screen:
   #  Screen.display.blit(img, pos)
   def returnImage(path):
     return pygame.image.load("textures/"+path)
-  def renderIMG(path, pos, resize = False, full_scale=False):
-    if -GLOBAL.variables['world'].square_size < pos[0] < Screen.window_width:
+  def renderIMG(path, pos, resize = False, full_scale=False, visible=128):
+    if -visible < pos[0] < Screen.window_width:
       if not( path in Screen.imgs):
         Screen.loadIMG(path, resize=resize, full_scale=full_scale)
       Screen.display.blit(Screen.imgs['textures/'+path], pos)
@@ -199,8 +199,8 @@ class Camera:
     #if GLOBAL.variables["characters"].characters[0].x - Camera.x < GLOBAL.variables["screen"].window_width*0.2:
     #  Camera.hor_speed += ((GLOBAL.variables["characters"].characters[0].x - Camera.x)-(GLOBAL.variables["screen"].window_width*0.2))/100
     afstand_midden = (GLOBAL.variables["characters"].characters[0].x - Camera.x)-GLOBAL.variables["screen"].window_width*0.5
-    if afstand_midden > 0:
-      Camera.x += (afstand_midden)/50
+    if afstand_midden > -100:
+      Camera.x += (afstand_midden+100)/25
     elif afstand_midden < -500:
       Camera.x += (afstand_midden)/200
       

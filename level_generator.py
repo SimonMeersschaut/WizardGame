@@ -142,6 +142,9 @@ while running:
           button = event.button
     if event.type == pygame.KEYDOWN:
       press = True
+      if event.key == pygame.K_q:
+        World.levels.append(Level())
+        World.current_level += 1
       if event.key == pygame.K_z:
         speed = 1
       elif event.key == pygame.K_a:

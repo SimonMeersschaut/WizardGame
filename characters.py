@@ -1,20 +1,26 @@
 from math import radians
 from global_variables import GLOBAL
+from time import time
 
 
 #from tool import World, Screen, Camera
 #from main import returnToMainMenu
 class Wizard:
-  WALK_SPEED = 7.2
+  WALK_SPEED = 6.5
+  SPRINT_SPEED = 10.0
   JUMP_HEIGHT = 25
+  JUMP_DELAY = .1
   def __init__(self):
+
     #SETUP VERIABLES
     self.screen = GLOBAL.variables["screen"]
     self.world = GLOBAL.variables["world"]
     self.x = 0
     self.y = 0
     self.scale = 2
+    self.jump_available = False
     self.direction = 'right'
+    self.last_jump = time()
     self.imgs = {
       'left':self.screen.scale(self.screen.returnImage('wizard_left.png'), self.scale),
       'right':self.screen.scale(self.screen.returnImage('wizard_right.png'), self.scale),
@@ -67,15 +73,22 @@ class Wizard:
     if GLOBAL.variables["settings"].k_left in self.screen.keys:
       pos = (left_feed[0]-15, left_feed[1]-10)
       if not(self.world.get_block(pos) in self.world.standables):
-        self.x -= self.WALK_SPEED*self.screen.frame_speed
+        self.x -= Wizard.WALK_SPEED*self.screen.frame_speed
         self.direction = 'left'
     elif GLOBAL.variables["settings"].k_right in self.screen.keys:
       pos = (right_feed[0]+15, right_feed[1]-10)
       if not(self.world.get_block(pos) in self.world.standables):
-        self. x += self.WALK_SPEED*self.screen.frame_speed
+        if GLOBAL.variables['settings'].k_sprint in self.screen.keys:
+          speed = Wizard.SPRINT_SPEED
+        else:
+          speed = Wizard.WALK_SPEED
+        self. x += speed*self.screen.frame_speed
       self.direction = 'right'
-    if GLOBAL.variables["settings"].k_jump in self.screen.keys and supported:
-      self.y_speed -= self.JUMP_HEIGHT
+    if GLOBAL.variables["settings"].k_jump in self.screen.keys and supported and self.jump_available:
+      if time()-self.last_jump > Wizard.JUMP_DELAY:
+        self.jump_available = False
+        self.last_jump = time()
+        self.y_speed -= self.JUMP_HEIGHT
     a = self.arm_angle_tartget - self.arm_angle
     a = (a + 180) % 360 - 180
     self.arm_angle_tartget = 87
@@ -85,9 +98,12 @@ class Wizard:
     elif a < -increment:
       self.arm_angle -= increment
     if supported:
+      if not GLOBAL.variables["settings"].k_jump in self.screen.keys:
+        self.jump_available = True
       if self.y_speed > 0:
         self.y_speed = 0
-        self.y = int((self.y)/self.world.square_size)*self.world.square_size#-50
+        self.y = int((self.y)/self.world.square_size)*self.world.square_size
+        
     if not supported:
       self.y_speed += 1*self.screen.frame_speed
     if self.floating and GLOBAL.variables['magic'].points > 0:

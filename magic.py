@@ -57,6 +57,7 @@ class Magic:
   spawned = False
   used_balls = False
   last_spell = 0
+  spell_ended = 0
   CIRCLE_DIST = 50
   CIRCLE_RADIUS = 20
   COLORS = {
@@ -100,6 +101,9 @@ class Magic:
           ball_color = (255,255,255)
         Screen.draw_circle(position, radius=Magic.CIRCLE_RADIUS, border_width=Magic.CIRCLE_RADIUS, color=ball_color)
       Magic.check_balls()
+    if time()-Magic.spell_ended > 5:
+      if Magic.points < 50:
+        Magic.points += Screen.frame_speed*max(time()-Magic.last_spell, 5)
     for spell in Magic.current_spells:
       if spell.render and spell.exists:
         spell.render()
@@ -107,7 +111,7 @@ class Magic:
         Magic.current_spells.remove(spell)
     #RENDER LOADING BAR
     x, y = (GLOBAL.variables['screen'].window_width-210,10)
-    GLOBAL.variables['screen'].draw_rect(x, y, Magic.points*2, 40)
+    GLOBAL.variables['screen'].draw_rect(Screen.window_width-220, y, Magic.points*2, 40)
 
   def get_dist(p1, p2):
     x1, y1 = p1

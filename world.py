@@ -11,7 +11,7 @@ class World:
   height = 20
   width = 90
   square_size = 128
-  standables = ['ground']
+  standables = ['ground', 'ground_bottom']
   grounds = ['ground.png', 'ground_bottom.png']
   world = 0
   level = -2
@@ -33,7 +33,7 @@ class World:
     print('get level')
     with open('world.json', 'r') as f:
       print('start')
-      file_content = load(f)['levels'][0]
+      file_content = load(f)['levels'][level-1]
       print(file_content)
       World.time_limit = time()+100#time()+file_content[-1]
       World.level_time_limit = time()+100# file_content[-1]

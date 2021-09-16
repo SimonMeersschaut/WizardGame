@@ -6,6 +6,7 @@ class Settings:
     ['k_left', 'q'],
     ['k_right', 'd'],
     ['k_jump', ' '],
+    ['k_sprint', 'z'],
     ['k_ball_1', '7'],
     ['k_ball_2', '8'],
     ['k_ball_3', '9'],
