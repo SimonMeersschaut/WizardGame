@@ -4,6 +4,7 @@ from characters import DarkMinds
 from global_variables import GLOBAL
 from screen import Screen
 from math import sqrt
+
 class Shield:
   def __init__(self, x, y):
     self.image = 'Shield.png'
@@ -11,12 +12,15 @@ class Shield:
     self.y = y
     self.exists = True
     self.size = 64
+
   def render(self):
     Screen.renderIMG(self.image, (self.x-GLOBAL.variables["camera"].x, self.y))
+
   def hit(self, obj):
     if type(obj) == DarkMinds:
       obj.exists = False
       self.exists = False
+
 class Shoot:
   def __init__(self, x, y):
     self.x = x
@@ -46,6 +50,7 @@ class Dash:
     self.exists = False
   def render(self):
     pass
+
 class Magic:
   #SPELLS
   #CODE:(OBJECT, MP)

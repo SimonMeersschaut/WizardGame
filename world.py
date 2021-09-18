@@ -5,6 +5,7 @@ from screen import Screen
 from json import load
 from characters import Characters
 from time import time
+
 class World:
 
   current_level = []
@@ -31,7 +32,7 @@ class World:
     World.map = [[None for y in range(World.height)] for x in range(World.width)]
     World.current_level = []
     finish_x = 0
-    finish_y = 100
+    finish_y = 1920
     print('get level')
     with open('world.json', 'r') as f:
       print('start')
@@ -48,34 +49,12 @@ class World:
           finish_y = min(finish_y, ypos)
         
         World.current_level.append([name, xpos, ypos])
-        #if commando[0] in Characters.NAMES:
-        #  Characters.createNew(commando)
-        #else:
-        #  if len(commando) == 5:
-        #    img, startx, starty, eindx, eindy = commando
-        #  else:
-        #    img, startx, starty = commando
-        #    eindx = startx
-        #    eindy = starty
-        #  finish_x = max(finish_x, eindx)
-        #  #if startx == eindx:
-        #  #  eindx += 1
-        #  #if starty == eindy:
-        #  #  eindy += 1
-        #  if abs(startx-eindx) > 0 and abs(starty-eindy) > 0:
-        #    for x in range(startx, eindx):
-        #      for y in range(starty, eindy):
-        #        World.map[x][y] = img
-        #        World.current_level.append([img, (x)*World.square_size, y*World.square_size])
-        #  else:
-        #    
-        #    World.map[startx][starty] = img
-        #    World.current_level.append([img, (startx)*World.square_size, starty*World.square_size])
+
     x, y = (int(finish_x/World.square_size), int(finish_y/World.square_size))
-    World.map[x-1][y] = 'finish.png'
+    World.map[x][y-2] = 'finish.png'
+    World.current_level.append(['finish.png', finish_x, finish_y-World.square_size])
     World.spawn_grass()
     World.set_bottoms()
-    World.current_level.append(['finish.png', finish_x, finish_y])
     World.finish_x = finish_x
 
     return World.current_level

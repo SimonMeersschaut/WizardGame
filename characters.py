@@ -3,10 +3,6 @@ from global_variables import GLOBAL
 from time import time
 
 
-
-
-#from tool import World, Screen, Camera
-#from main import returnToMainMenu
 class Wizard:
   WALK_SPEED = 5.0
   SPRINT_SPEED = 10.0
@@ -101,8 +97,7 @@ class Wizard:
     elif a < -increment:
       self.arm_angle -= increment
     if supported:
-      block = GLOBAL.variables['world'].get_block(left_feed)
-      if any([GLOBAL.variables['world'].get_block(position) in block in GLOBAL.variables['world'].deadly for position in [left_feed, right_feed, head]]):
+      if any([GLOBAL.variables['world'].get_block(position) in GLOBAL.variables['world'].deadly for position in [left_feed, right_feed, head]]):
         GLOBAL.variables['world'].die()
       #
       if not GLOBAL.variables["settings"].k_jump in self.screen.keys:
@@ -169,5 +164,7 @@ class Characters:
   
 def collide(block):
   color = block.split('book_')[1]
-  if color == 'purple':
+  if color == 'green':
     GLOBAL.variables['magic'].mode = 'movement'
+  if color == 'red':
+    GLOBAL.variables['magic'].mode = 'combat'
