@@ -6,6 +6,23 @@ from json import load
 from characters import Characters
 from time import time
 
+COLORS = {
+  'red':(200,0,0),
+  'green':(0,200,0)
+}
+
+class Book:
+  def __init__(self, name):
+    self.name = name
+    self.color = name.split('book_')[1].split('.')[0]
+    self.rgb = COLORS[self.color]
+  def render(self, xpos, ypos):
+    GLOBAL.variables['screen'].draw_rect(xpos-GLOBAL.variables["camera"].x, ypos, World.square_size, World.square_size, color=self.rgb)
+    Screen.renderIMG('book_blueprint.png', (xpos-GLOBAL.variables["camera"].x, ypos), resize = 2)
+  
+  def collide(self):
+    GLOBAL.variables['magic'].mode = self.color
+
 class World:
 
   current_level = []
@@ -13,7 +30,7 @@ class World:
   height = 20
   width = 90
   square_size = 128
-  standables = ['ground', 'ground_bottom', 'spikes', 'spikes_bottom']
+  standables = ['ground', 'ground_bottom', 'spikes_bottom']
   grounds = ['ground.png', 'ground_bottom.png', 'spikes.png', 'spikes_bottom.png']
   deadly = ['spikes']
   world = 0
@@ -42,13 +59,25 @@ class World:
       World.level_time_limit = time()+100# file_content[-1]
       finish_x = 0
       for name, x, y in file_content:
-        World.map[x][y] = name
+        if not('book' in name):
+          if name in GLOBAL.variables['characters'].NAMES:
+            GLOBAL.variables['characters'].createNew((name, x*World.square_size, y*World.square_size))
+            continue
+          try:
+            World.map[x][y] = name
+          except IndexError:
+            continue
+        else:
+          book = Book(name)
+          World.map[x][y] = book
         xpos, ypos = ((x)*World.square_size, (y)*World.square_size)
         if xpos >= finish_x:
           finish_x = xpos
           finish_y = min(finish_y, ypos)
-        
-        World.current_level.append([name, xpos, ypos])
+        if type(name) != str or not('book' in name):
+          World.current_level.append([name, xpos, ypos])
+        else:
+          World.current_level.append([book, xpos, ypos])
 
     x, y = (int(finish_x/World.square_size), int(finish_y/World.square_size))
     World.map[x][y-2] = 'finish.png'
@@ -67,12 +96,13 @@ class World:
   def set_bottoms():
     BOTTOMS = ['ground', 'spike']
     for index, (obj, xpos, ypos) in enumerate(World.current_level):
-      if any([obj.split('.')[0] in BOTTOM or BOTTOM in obj.split('.')[0] for BOTTOM in BOTTOMS]) and (World.map[round(xpos/World.square_size)][round(ypos/World.square_size)-1] in World.grounds or World.map[round(xpos/World.square_size)][round(ypos/World.square_size)-1] in BOTTOMS):
-        new_name = obj.split('.')[0]+'_bottom.'+obj.split('.')[1]
-        World.map[round(xpos/World.square_size)][round(ypos/World.square_size)] = new_name
-        World.current_level[index][0] = new_name
-      else:
-        print(obj)
+      if type(obj) == str:
+        if any([obj.split('.')[0] in BOTTOM or BOTTOM in obj.split('.')[0] for BOTTOM in BOTTOMS]) and (World.map[round(xpos/World.square_size)][round(ypos/World.square_size)-1] in World.grounds or World.map[round(xpos/World.square_size)][round(ypos/World.square_size)-1] in BOTTOMS):
+          new_name = obj.split('.')[0]+'_bottom.'+obj.split('.')[1]
+          World.map[round(xpos/World.square_size)][round(ypos/World.square_size)] = new_name
+          World.current_level[index][0] = new_name
+        else:
+          print(obj)
   def next_level():
     World.level += 1
     World.load_level()
@@ -87,8 +117,10 @@ class World:
   
   def render():
     for index, (obj, xpos, ypos) in enumerate(World.current_level):
-
-      Screen.renderIMG(obj, (xpos-GLOBAL.variables["camera"].x, ypos), resize = 2)
+      if type(obj) == str:
+        Screen.renderIMG(obj, (xpos-GLOBAL.variables["camera"].x, ypos), resize = 2)
+      else:
+        obj.render(xpos, ypos)
     width, height = ((World.time_limit-time())/World.level_time_limit*1500,50)
     x1 = 200
     y1 = 10
@@ -102,9 +134,12 @@ class World:
         xposition, yposition = xposition
       (xvak, yvak) = World.get_square(xposition, yposition)
       vak = World.map[xvak][yvak]
-      if '.' in str(vak):
-        return vak.split('.')[0]
-      return vak
+      if type(vak) == str:
+        if '.' in str(vak):
+          return vak.split('.')[0]
+        return vak
+      else:
+        return vak
     except IndexError:
       return None
   def returnToMainMenu():

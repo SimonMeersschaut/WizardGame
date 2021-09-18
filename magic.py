@@ -1,19 +1,25 @@
 from time import time
+
+from numpy.core.numeric import _zeros_like_dispatcher
 #from characters import Characters
 from characters import DarkMinds
 from global_variables import GLOBAL
 from screen import Screen
 from math import sqrt
+from functools import partial
 
 class Shield:
+  MAX_TIME = 5
   def __init__(self, x, y):
     self.image = 'Shield.png'
     self.x = x
     self.y = y
     self.exists = True
     self.size = 64
-
+    self.created = time()
   def render(self):
+    if time()-self.created > Shield.MAX_TIME:
+      self.exists = False
     Screen.renderIMG(self.image, (self.x-GLOBAL.variables["camera"].x, self.y))
 
   def hit(self, obj):
@@ -22,31 +28,57 @@ class Shield:
       self.exists = False
 
 class Shoot:
+  MAX_TIME = 5
+  BACKFIRE = 40
   def __init__(self, x, y):
     self.x = x
     self.y = y
     self.exists = True
     self.size = 64
-    self.image = 'Shield.png'
+    self.image = 'shoot.png'
+    self.created = time()
+    GLOBAL.variables['characters'].wizard.x_speed += self.direction[0]*Shoot.BACKFIRE
+    GLOBAL.variables['characters'].wizard.y_speed += self.direction[1]*Shoot.BACKFIRE
+    print(GLOBAL.variables['characters'].wizard.x_speed)
   def render(self):
+    if time()-self.created > Shield.MAX_TIME:
+      self.exists = False
     Screen.renderIMG(self.image, (self.x-GLOBAL.variables["camera"].x, self.y))
-    self.x += 1
+    self.x -= Shoot.BACKFIRE/4*self.direction[0]
+    self.y -= Shoot.BACKFIRE/4*self.direction[1]
   def hit(self, obj):
     if type(obj) == DarkMinds:
       obj.exists = False
       self.exists = False
 
+class Shoot_left(Shoot):
+  def __init__(self, x, y):
+    self.direction = (1,0)
+    super().__init__(x, y)
+class Shoot_right(Shoot):
+  def __init__(self, x, y):
+    self.direction = (-1,0)
+    super().__init__(x, y)
+class Shoot_up(Shoot):
+  def __init__(self, x, y):
+    self.direction = (0,1)
+    super().__init__(x, y)
+class Shoot_down(Shoot):
+  def __init__(self, x, y):
+    self.direction = (0,-1)
+    super().__init__(x, y)
+
 class Dash:
   def __init__(self, x, y):
     possible = True
-    distance = 400
+    distance = 50
     y = GLOBAL.variables['characters'].wizard.y
     for x in range(int(GLOBAL.variables['characters'].wizard.x), int(GLOBAL.variables['characters'].wizard.x+distance), int(GLOBAL.variables['world'].square_size/2)):
       block = GLOBAL.variables['world'].get_block(x, y)
       if block in GLOBAL.variables['world'].grounds or block in GLOBAL.variables['world'].standables:
         possible = False
     if possible:
-      GLOBAL.variables['characters'].wizard.x += distance
+      GLOBAL.variables['characters'].wizard.x_speed += distance
     self.exists = False
   def render(self):
     pass
@@ -56,15 +88,20 @@ class Magic:
   #CODE:(OBJECT, MP)
   SPELLS = {
     'none':{},
-    'movement':{
+    'green':{
       '45':(Dash, 1),
       "14":(None, 0)
     },
-    'combat':{
+    'red':{
       "046":(Shield, 10),
-      '45':(Shoot, 1)
+      '45':(Shoot_right, 1),
+      '34':(Shoot_left, 1),
+      '14':(Shoot_up, 1),
+      '47':(Shoot_down, 1)
     }
   }
+
+    
   points = 0
   refreshed = 0
   spawned = False
@@ -102,7 +139,7 @@ class Magic:
       'right':[(20,20,20), (180,180,180)],
       'no points':[(80,80,80), (255,100,100)]
     }
-    autocomplete = Magic.autocomplete()
+    #autocomplete = Magic.autocomplete()
     if Magic.injuring:
       for index, position in enumerate(Magic.ball_positions):
         
@@ -110,8 +147,8 @@ class Magic:
           ball_color = colors[Magic.combination][1]
         else:
           ball_color = colors[Magic.combination][0]
-        if index in autocomplete:
-          ball_color = (255,255,255)
+        #if index in autocomplete:
+        #  ball_color = (255,255,255)
         Screen.draw_circle(position, radius=Magic.CIRCLE_RADIUS, border_width=Magic.CIRCLE_RADIUS, color=ball_color)
       Magic.check_balls()
     if time()-Magic.spell_ended > 5:
@@ -133,39 +170,41 @@ class Magic:
     c = y2-y1
     a = sqrt(b**2 + c**2)
     return a
-  def autocomplete():
-    autocomplete = []
-    activated = ''.join([str(number) for number in Magic.activated_balls])
-    for spell in Magic.SPELLS[Magic.mode]:
-      if activated in spell:
-        #print('magic autocomplete')
-        broke = False
-        for index, (letterSPELL, letterBALL) in enumerate(zip(spell, activated)):
-          if not broke:
-            #print(type(letterSPELL), type(letterBALL))
-            if letterSPELL != letterBALL:
-              
-              if index != 0:
-                #print('append',letterSPELL)
-                autocomplete.append(letterSPELL)
-              broke = True
-    return autocomplete
+  #def autocomplete():
+  #  autocomplete = []
+  #  activated = ''.join([str(number) for number in Magic.activated_balls])
+  #  for spell in Magic.SPELLS[Magic.mode]:
+  #    if activated in spell:
+  #      #print('magic autocomplete')
+  #      broke = False
+  #      for index, (letterSPELL, letterBALL) in enumerate(zip(spell, activated)):
+  #        if not broke:
+  #          #print(type(letterSPELL), type(letterBALL))
+  #          if letterSPELL != letterBALL:
+  #            
+  #            if index != 0:
+  #              #print('append',letterSPELL)
+  #              autocomplete.append(letterSPELL)
+  #            broke = True
+  #  return autocomplete
   def check_balls():
     tijd = time()
+    
     if tijd-Magic.last_spell > .5:
       keys  = [setting_key[0] for setting_key in GLOBAL.variables["settings"].keys if 'ball_' in setting_key[0]]
       balls = [index for index, key in enumerate(keys) if key in GLOBAL.variables["screen"].keys]
       
+      
       for ball in balls:
         if ball not in Magic.activated_balls:
           Magic.activated_balls.append(ball)
-          Magic.refreshed = tijd
-          Magic.used = False
+       #    Magic.refreshed = tijd
+       #    #Magic.used = False
       Magic.activated_balls = sorted(Magic.activated_balls)
-      if (tijd-Magic.refreshed > 0.2 and balls == []) or (Magic.used and balls == []):
+      if (tijd-Magic.refreshed > .2 and balls == []) or (balls == []):
         Magic.activated_balls = []
-        Magic.used = False
-        Magic.spawned = False
+      #  #Magic.used = False
+      #  #Magic.spawned = False
     #if Screen.mouseDown:
     #  for index, position in enumerate(Magic.ball_positions):
     #    dist = Magic.get_dist(position, Screen.mousePos)
@@ -191,15 +230,18 @@ class Magic:
             combination = 'no points'
     Magic.combination = combination
   def check_spell():
+    wizard = GLOBAL.variables['characters'].wizard
     spell_combination = ''.join([str(number) for number in Magic.activated_balls])
-    for spell_name in Magic.SPELLS[Magic.mode]:
-      obj, spell_points = Magic.SPELLS[Magic.mode][spell_name]
-      if spell_combination == spell_name:
-        Magic.used = True
-        if Magic.points > spell_points:
-          Magic.points -= spell_points
-          if obj != None:
-            Magic.activated_balls = []
-            Magic.current_spells.append(obj(GLOBAL.variables['characters'].wizard.x+63, GLOBAL.variables['characters'].wizard.y+24))
-            Magic.spawned = True
-            Magic.last_spell = time()
+    if wizard.touched_ground:
+      for spell_name in Magic.SPELLS[Magic.mode]:
+        obj, spell_points = Magic.SPELLS[Magic.mode][spell_name]
+        if spell_combination == spell_name:
+          Magic.used = True
+          if Magic.points > spell_points:
+            Magic.points -= spell_points
+            if obj != None:
+              Magic.activated_balls = []
+              Magic.current_spells.append(obj(GLOBAL.variables['characters'].wizard.x+63, GLOBAL.variables['characters'].wizard.y+24))
+              Magic.spawned = True
+              Magic.last_spell = time()
+              wizard.touched_ground = False

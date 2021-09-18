@@ -45,11 +45,9 @@ class World:
   def convert_world():
     world = []
     for level in enumerate(World.levels):
-      print(level)
       level_list = []
       for x, row in enumerate(level[1]):
         for y, item in enumerate(row):
-          print(item)
           if item != None:
             level_list.append((item, x, y))
       world.append(level_list)
@@ -72,6 +70,7 @@ class World:
     World.levels[World.current_level].inhoud[x][y] = name
 
 def save():
+  print('SAVING')
   configs = [attr for attr in dir(World.Config) if (not( '__' in attr))]
   config = {}
   for config_name in configs:
@@ -94,7 +93,6 @@ def load():
     config = inhoud['config']
     for attr in config:
       setattr(World.Config, attr, config[attr])
-      print(attr, config[attr])
 
     World.levels = [Level(data) for data in inhoud['levels']]
   else:

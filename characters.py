@@ -1,7 +1,7 @@
-from math import radians
+from math import radians, sqrt
 from global_variables import GLOBAL
 from time import time
-
+import numpy
 
 class Wizard:
   WALK_SPEED = 5.0
@@ -25,6 +25,8 @@ class Wizard:
       'static':self.screen.scale(self.screen.returnImage('wizard_static.png'), self.scale)
     }
     self.y_speed = 0
+    self.x_speed = 0
+    self.touched_ground = True
     self.speed = 0
     self.floating = False
     self.exists = True
@@ -33,30 +35,41 @@ class Wizard:
     self.arm_angle_tartget = 0
     self.size = 128
   def renderMe(self):
+    self.x += self.x_speed
+    if abs(self.x_speed) > 1:
+      self.x_speed -= (GLOBAL.variables['screen'].frame_speed*2)*numpy.sign(self.x_speed)
+      print(self.x_speed)
+    else:
+      self.x_speed = 0
     #VARIABLES
     
     left_feed = (self.x+23*self.scale, self.y+64*self.scale)
     right_feed = (self.x+42*self.scale, self.y+64*self.scale)
     arm = (self.x+21*self.scale, self.y+21*self.scale)
     head = (self.x+34*self.scale, self.y+7*self.scale)
-    
+    if head[1] < -10:
+      self.y += -head[1]
+      self.y_speed = 0
     try:
       supported = any([(self.world.get_block(position) in self.world.standables) for position in [left_feed, right_feed]])
     except IndexError:
       supported = False
-    
+
+    if supported and self.y > 5:
+      self.touched_ground = True
+
     #RENDERING ALL IMGS
     self.screen.renderSurface(self.imgs[self.direction], (self.x-GLOBAL.variables["camera"].x, self.y))
     self.screen.blitRotate(self.arm, (arm[0]-GLOBAL.variables["camera"].x, arm[1]), (0,26), self.arm_angle)
     #if GLOBAL.variables['magic'].conjuring != '':
     #  self.screen.draw_circle((self.x+64*2, self.y+23*2), radius=10, color=GLOBAL.variables['magic'].COLORS[GLOBAL.variables['magic'].conjuring])
     #rect = rect.move(arm[0]-GLOBAL.variables["camera"].x, arm[1])
-    blocks = [('book_purple', True)]
     for position in [(self.x, self.y), (self.x+128, self.y), left_feed, right_feed]:
-      if self.world.get_block(position) in [block[0] for block in blocks]:
+      if type(self.world.get_block(position)) != str and type(self.world.get_block(position)) !=  type(None):
         x_pos, y_pos = (position[0], position[1])
-        print(self.world.get_block(position))
-        collide(self.world.get_block(position))
+        block = self.world.get_block(position)
+        print(block)
+        block.collide()
         
         self.world.delete_block(x_pos, y_pos)
         
@@ -97,9 +110,9 @@ class Wizard:
     elif a < -increment:
       self.arm_angle -= increment
     if supported:
-      if any([GLOBAL.variables['world'].get_block(position) in GLOBAL.variables['world'].deadly for position in [left_feed, right_feed, head]]):
+      positions = [(position[0], position[1]-2) for position in [left_feed, right_feed, head]]
+      if any([GLOBAL.variables['world'].get_block(position) in GLOBAL.variables['world'].deadly for position in positions]):
         GLOBAL.variables['world'].die()
-      #
       if not GLOBAL.variables["settings"].k_jump in self.screen.keys:
         self.jump_available = True
       if self.y_speed > 0:
@@ -124,16 +137,27 @@ class Wizard:
       GLOBAL.variables["world"].die()
 
 class DarkMinds:
-  SPEED = 3
+  SPEED = 5
   def __init__(self, x, y):
     self.x = x
     self.y = y
     self.size = 64
     self.exists = True
+    self.active = False
+  def activate(self):
+    self.active = True
+    for char in Characters.characters:
+      try:
+        if not(char.active) and sqrt((self.x-char.x)**2 + (self.y-char.y)**2) < 200:
+          char.activate()
+      except AttributeError:
+        pass
   def renderMe(self):
     width, height = (64,64)
     #wizard =  Characters.wizard
-    if self.x-GLOBAL.variables["camera"].x < GLOBAL.variables["screen"].window_width and self.x-GLOBAL.variables["camera"].x > -100:
+    if not(self.active) and self.x-GLOBAL.variables["camera"].x < GLOBAL.variables["screen"].window_width and self.x-GLOBAL.variables["camera"].x > -100:
+      self.activate()
+    if self.active:
       self.x -= DarkMinds.SPEED*GLOBAL.variables["screen"].frame_speed
       GLOBAL.variables["screen"].renderIMG('DarkMind.png', (self.x-GLOBAL.variables["camera"].x, self.y))
       for obj in Characters.characters + GLOBAL.variables["magic"].current_spells:
@@ -145,7 +169,7 @@ class DarkMinds:
               obj.hit(self)
 
 class Characters:
-  NAMES = {"DarkMinds":DarkMinds}
+  NAMES = {"darkmind":DarkMinds}
   characters = []
   def init():
     Characters.characters = []
@@ -162,9 +186,3 @@ class Characters:
     
     Characters.characters.append(Characters.NAMES[name](x, y))
   
-def collide(block):
-  color = block.split('book_')[1]
-  if color == 'green':
-    GLOBAL.variables['magic'].mode = 'movement'
-  if color == 'red':
-    GLOBAL.variables['magic'].mode = 'combat'
