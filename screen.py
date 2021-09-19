@@ -20,6 +20,7 @@ class Screen:
     cls.window_height = infoObject.current_h
     cls.window_width = infoObject.current_w
     cls.display = pygame.display.set_mode((cls.window_width, cls.window_height), pygame.FULLSCREEN)
+    cls.font = pygame.font.Font('freesansbold.ttf', 100) 
     cls.render_functions = []
     cls.bg_color = (255,255,255)
     cls.state = 'starting'
@@ -32,7 +33,7 @@ class Screen:
     cls.frame_speed = 0
     cls.mouseDown = False
     cls.mousePos = (0,0)
-    
+    cls.texts = {}
   def check_events():
     Screen.frame_speed = 1/((time()-Screen.last_time)*60)
     Screen.last_time = time()
@@ -49,9 +50,8 @@ class Screen:
         x1, y1, x2, y2 = click[0]
         if x >= x1 and x <= x2 and y >= y1 and y <= y2:
           click[1]()
-    if Screen.mouseDown:
-      if pygame.MOUSEMOTION in Screen.event_types:
-        Screen.mousePos = pygame.mouse.get_pos()
+    if pygame.MOUSEMOTION in Screen.event_types:
+      Screen.mousePos = pygame.mouse.get_pos()
     if pygame.MOUSEBUTTONUP in Screen.event_types:
       Screen.mouseDown = False
     #Screen.keys = []
@@ -85,7 +85,8 @@ class Screen:
   
   def render():
     Screen.display.fill(Screen.bg_color)
-    Screen.renderIMG('background.jpg', (0-(Camera.x/25),-20), resize=2, full_scale=True, visible=1920)
+    if Screen.state == 'game':
+      Screen.renderIMG('background.jpg', (0-(Camera.x/25),-20), resize=2, full_scale=True, visible=1920)
     if Screen.state == 'game':
       GLOBAL.variables["characters"].render()
       GLOBAL.variables["world"].render()
@@ -166,6 +167,10 @@ class Screen:
       pygame.draw.circle(Screen.display, color, pos, radius, border_width)
   def draw_line(pos1, pos2, color=(0,0,0), width=5):
     pygame.draw.line(Screen.display, color, pos1, pos2, width)
+  def render_text(text, x, y, color=(0,0,0)):
+    if not(text in Screen.texts):
+      Screen.texts.update({text:Screen.font.render(text, True, color)})
+    Screen.display.blit(Screen.texts[text], (x,y))
   def click(x1, y1, x2, y2):
     def decorator(f):
         Screen.clickListener.append([[x1, y1, x2, y2], f])

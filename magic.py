@@ -142,11 +142,13 @@ class Magic:
     #autocomplete = Magic.autocomplete()
     if Magic.injuring:
       for index, position in enumerate(Magic.ball_positions):
-        
-        if index in Magic.activated_balls:
-          ball_color = colors[Magic.combination][1]
+        if not(GLOBAL.variables['characters'].wizard.touched_ground):
+          ball_color = (50,0,0)
         else:
-          ball_color = colors[Magic.combination][0]
+          if index in Magic.activated_balls:
+            ball_color = colors[Magic.combination][1]
+          else:
+            ball_color = colors[Magic.combination][0]
         #if index in autocomplete:
         #  ball_color = (255,255,255)
         Screen.draw_circle(position, radius=Magic.CIRCLE_RADIUS, border_width=Magic.CIRCLE_RADIUS, color=ball_color)

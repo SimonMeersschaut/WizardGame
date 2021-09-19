@@ -37,6 +37,7 @@ class Wizard:
   def renderMe(self):
     self.x += self.x_speed
     if abs(self.x_speed) > 1:
+      #self.x_speed -= GLOBAL.variables['screen'].frame_speed
       self.x_speed -= (GLOBAL.variables['screen'].frame_speed*2)*numpy.sign(self.x_speed)
       print(self.x_speed)
     else:

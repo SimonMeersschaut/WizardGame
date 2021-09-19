@@ -43,8 +43,11 @@ class World:
     World.level_time_limit = 1
     World.time_started = 0
     World.next_level()
+    with open('world.json', 'r') as f:
+      file_content = load(f)['levels']
+      World.levels = len(file_content)
 
-  def get_level(world, level):
+  def get_level(level):
 
     World.map = [[None for y in range(World.height)] for x in range(World.width)]
     World.current_level = []
@@ -53,7 +56,9 @@ class World:
     print('get level')
     with open('world.json', 'r') as f:
       print('start')
-      file_content = load(f)['levels'][level-1]
+      file_content = load(f)['levels']
+      World.levels = len(file_content)
+      file_content = file_content[level-1]
       print(file_content)
       World.time_limit = time()+100#time()+file_content[-1]
       World.level_time_limit = time()+100# file_content[-1]
@@ -113,7 +118,7 @@ class World:
     GLOBAL.variables['magic'].init()
     GLOBAL.variables['camera'].init()
     #try:
-    World.get_level(World.world, World.level)
+    World.get_level(World.level)
   
   def render():
     for index, (obj, xpos, ypos) in enumerate(World.current_level):
