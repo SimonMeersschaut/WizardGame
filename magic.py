@@ -1,12 +1,9 @@
 from time import time
-
-from numpy.core.numeric import _zeros_like_dispatcher
 #from characters import Characters
 from characters import DarkMinds
 from global_variables import GLOBAL
 from screen import Screen
 from math import sqrt
-from functools import partial
 
 class Shield:
   MAX_TIME = 5
@@ -37,8 +34,13 @@ class Shoot:
     self.size = 64
     self.image = 'shoot.png'
     self.created = time()
-    GLOBAL.variables['characters'].wizard.x_speed += self.direction[0]*Shoot.BACKFIRE
-    GLOBAL.variables['characters'].wizard.y_speed += self.direction[1]*Shoot.BACKFIRE
+    for x in range(int(self.x), int(self.x)+self.direction[0]*Shoot.BACKFIRE*2, GLOBAL.variables['world'].square_size):
+      for y in range(int(self.y), int(self.y)+self.direction[1]*Shoot.BACKFIRE*2, GLOBAL.variables['world'].square_size):
+        if GLOBAL.variables['world'].get_block(x, y) in GLOBAL.variables['world'].grounds:
+          self.exists = False
+    if self.exists:
+      GLOBAL.variables['characters'].wizard.x_speed += self.direction[0]*Shoot.BACKFIRE
+      GLOBAL.variables['characters'].wizard.y_speed += self.direction[1]*Shoot.BACKFIRE
     print(GLOBAL.variables['characters'].wizard.x_speed)
   def render(self):
     if time()-self.created > Shield.MAX_TIME:
@@ -115,7 +117,7 @@ class Magic:
   }
   #VARIABLES
   def init():
-    Magic.points = 100
+    Magic.points = 4
     Magic.injuring = True
     Magic.current_spells = []
     Magic.mode = 'none'
@@ -136,7 +138,7 @@ class Magic:
   def render():
     colors = {
       None:[(0,0,0), (120,120,120)],
-      'right':[(20,20,20), (180,180,180)],
+      'right':[(20,20,20), (200,200,200)],
       'no points':[(80,80,80), (255,100,100)]
     }
     #autocomplete = Magic.autocomplete()
@@ -154,8 +156,13 @@ class Magic:
         Screen.draw_circle(position, radius=Magic.CIRCLE_RADIUS, border_width=Magic.CIRCLE_RADIUS, color=ball_color)
       Magic.check_balls()
     if time()-Magic.spell_ended > 5:
-      if Magic.points < 50:
-        Magic.points += Screen.frame_speed*max(time()-Magic.last_spell, 5)
+      if Magic.mode != 'none':
+        x = 1915-(Magic.points*100)
+        for i in range(Magic.points):
+          GLOBAL.variables['screen'].renderIMG('spell.png', (x, 20))
+          x += 100
+      #if Magic.points < 50:
+      #  Magic.points += Screen.frame_speed*max(time()-Magic.last_spell, 5)
     for spell in Magic.current_spells:
       if spell.render and spell.exists:
         spell.render()
@@ -163,7 +170,7 @@ class Magic:
         Magic.current_spells.remove(spell)
     #RENDER LOADING BAR
     x, y = (GLOBAL.variables['screen'].window_width-210,10)
-    GLOBAL.variables['screen'].draw_rect(Screen.window_width-220, y, Magic.points*2, 40)
+    #GLOBAL.variables['screen'].draw_rect(Screen.window_width-220, y, Magic.points*2, 40)
 
   def get_dist(p1, p2):
     x1, y1 = p1
@@ -193,7 +200,7 @@ class Magic:
     tijd = time()
     
     if tijd-Magic.last_spell > .5:
-      keys  = [setting_key[0] for setting_key in GLOBAL.variables["settings"].keys if 'ball_' in setting_key[0]]
+      keys  = [setting_key[1] for setting_key in GLOBAL.variables["settings"].keys if 'ball_' in setting_key[0]]
       balls = [index for index, key in enumerate(keys) if key in GLOBAL.variables["screen"].keys]
       
       
@@ -225,7 +232,7 @@ class Magic:
     for spell_name in Magic.SPELLS[Magic.mode]:
       obj, spell_points = Magic.SPELLS[Magic.mode][spell_name]
       if spell_combination == spell_name:
-        if Magic.points > spell_points:
+        if Magic.points >= spell_points:
           combination = 'right'
         else:
           if not combination:
@@ -239,7 +246,7 @@ class Magic:
         obj, spell_points = Magic.SPELLS[Magic.mode][spell_name]
         if spell_combination == spell_name:
           Magic.used = True
-          if Magic.points > spell_points:
+          if Magic.points >= spell_points:
             Magic.points -= spell_points
             if obj != None:
               Magic.activated_balls = []

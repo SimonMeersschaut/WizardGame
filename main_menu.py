@@ -5,8 +5,13 @@ class Menu:
   class Level:
     WIDTH = 200
     offset_x = 20
-    def __init__(self, index):
+    def __init__(self, index, last):
       self.index = index
+      self.last = bool(last)
+      if self.last:
+        self.color = (20,20,20)
+      else:
+        self.color = (0,0,0)
       x, y = (0,100)
       for i in range(GLOBAL.variables['world'].levels):
         
@@ -19,18 +24,22 @@ class Menu:
           y += Menu.Level.WIDTH+10
           x = 0
     def render(self):
-      Screen.draw_rect(self.x+Menu.Level.offset_x, self.y, Menu.Level.WIDTH, Menu.Level.WIDTH, color=(0,0,0))
+      x, y = Screen.mousePos
+      if self.x < x < self.x+Menu.Level.WIDTH and self.y < y < self.y+Menu.Level.WIDTH:
+        Screen.draw_rect(self.x+Menu.Level.offset_x-2, self.y-2, Menu.Level.WIDTH+4, Menu.Level.WIDTH+4, color=(255,255,255))
+
+      Screen.draw_rect(self.x+Menu.Level.offset_x, self.y, Menu.Level.WIDTH, Menu.Level.WIDTH, color=self.color)
       Screen.render_text(str(self.index+1), self.x+Menu.Level.offset_x+10, self.y, color=(255,255,255))
+      
     def clicked(self, x, y):
       if self.x < x < self.x+Menu.Level.WIDTH and self.y < y < self.y+Menu.Level.WIDTH:
 
-        GLOBAL.variables['world'].level += self.index
-        GLOBAL.variables['world'].get_level(self.index+1)
+        GLOBAL.variables['world'].level = self.index+1
+        GLOBAL.variables['world'].load_level()
         Screen.state = 'game'
 
   OPTIONS = 3
   X_VALUES = [960-897, 960-827, 960-902]
-  state = 'main_menu'
   levels = []
   def init():
     Screen.loadIMG('main_menu.png')
@@ -39,32 +48,32 @@ class Menu:
   def render():
     index = round((Screen.mousePos[1]-534)/(628-534))
     index = min(max(0, index), Menu.OPTIONS-1)
-    if Menu.state == 'main_menu':
+    if Screen.state == 'main_menu':
       Screen.renderIMG('main_menu.png', (0,0))
       Screen.renderIMG('arrow_right.png', (960-Menu.X_VALUES[index]-75, index*(628-534)+509))
       Screen.renderIMG('arrow_left.png', (960+Menu.X_VALUES[index]+75-50, index*(628-534)+509))
       if Screen.mouseDown:
         if index == 0:
-          Menu.state = 'levels_wachten'
+          Screen.state = 'levels_wachten_menu'
           Menu.create_levels()
         elif index == 1:
-          Screen.state = 'options'
+          Screen.state = 'settings'
         elif index == 2:
           Screen.running = False
-    elif Menu.state == 'levels_wachten':
+    if Screen.state == 'levels_wachten_menu':
       if not(Screen.mouseDown):
-        Menu.state = 'levels'
-    elif Menu.state == 'levels':
+        Screen.state = 'levels_menu'
+    if Screen.state == 'levels_menu':
       for level in Menu.levels:
         level.render()
       if Screen.mouseDown:
         x, y = Screen.mousePos
         for level in Menu.levels:
           level.clicked(x, y)
+    print(Screen.state)
     #if 1920 > Screen.mousePos[0] > 0:
     #  Screen.state = 'game'
   def create_levels():
-    Menu.levels = [Menu.Level(i) for i in range(GLOBAL.variables['world'].levels)]
+    unlocked = GLOBAL.variables['settings'].unlocked_levels
+    Menu.levels = [Menu.Level(i, (i+1)==unlocked) for i in range(min(GLOBAL.variables['world'].levels, unlocked))]
     print(f'LEVELS:' + str(GLOBAL.variables['world'].levels))
-  def stop():
-    Screen.state = 'game'

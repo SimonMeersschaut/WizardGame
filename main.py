@@ -10,8 +10,9 @@ GLOBAL.variables.update({"screen":Screen, "characters":Characters, "world":World
 
 for module in GLOBAL.variables.values():
   module.init()
-
 Screen.state = 'main_menu'
+
 while Screen.running:
   Screen.render()
+
 Settings.save()

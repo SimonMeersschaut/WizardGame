@@ -2,7 +2,6 @@ import json
 import glob
 from math import modf
 import pygame
-import types
 from random import randint
 
 pygame.init()
@@ -143,6 +142,8 @@ while running:
       if event.key == pygame.K_q:
         World.levels.append(Level())
         World.current_level += 1
+      if event.key == pygame.K_s:
+        World.current_level -= 1
       if event.key == pygame.K_z:
         speed = 1
       elif event.key == pygame.K_a:

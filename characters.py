@@ -4,10 +4,11 @@ from time import time
 import numpy
 
 class Wizard:
-  WALK_SPEED = 5.0
-  SPRINT_SPEED = 10.0
-  JUMP_HEIGHT = 25
+  WALK_SPEED = 7.0
+  SPRINT_SPEED = 15.0
+  JUMP_HEIGHT = 23
   JUMP_DELAY = .1
+  FEED_Y = 62
   def __init__(self):
 
     #SETUP VERIABLES
@@ -35,19 +36,27 @@ class Wizard:
     self.arm_angle_tartget = 0
     self.size = 128
   def renderMe(self):
-    self.x += self.x_speed
+    
+    #VARIABLES
+    left_feed = (self.x+23*self.scale, self.y+Wizard.FEED_Y*self.scale)
+    right_feed = (self.x+42*self.scale, self.y+Wizard.FEED_Y*self.scale)
+    arm = (self.x+21*self.scale, self.y+21*self.scale)
+    head = (self.x+34*self.scale, self.y+7*self.scale)
+    x_speed = self.x_speed*GLOBAL.variables['screen'].frame_speed
+    if x_speed > 0:
+      if not(GLOBAL.variables['world'].get_block((right_feed[0]+x_speed), right_feed[1]-5) in GLOBAL.variables['world'].standables):
+        self.x += x_speed
+      else:
+        self.x_speed = 0
     if abs(self.x_speed) > 1:
       #self.x_speed -= GLOBAL.variables['screen'].frame_speed
-      self.x_speed -= (GLOBAL.variables['screen'].frame_speed*2)*numpy.sign(self.x_speed)
+      self.x_speed -= (GLOBAL.variables['screen'].frame_speed*2)*numpy.sign(x_speed)
       print(self.x_speed)
     else:
       self.x_speed = 0
-    #VARIABLES
-    
-    left_feed = (self.x+23*self.scale, self.y+64*self.scale)
-    right_feed = (self.x+42*self.scale, self.y+64*self.scale)
-    arm = (self.x+21*self.scale, self.y+21*self.scale)
-    head = (self.x+34*self.scale, self.y+7*self.scale)
+    if GLOBAL.variables['world'].get_block(head[0], head[1]) in GLOBAL.variables['world'].standables:
+      self.y -= 3
+      self.y_speed = 0
     if head[1] < -10:
       self.y += -head[1]
       self.y_speed = 0
@@ -118,7 +127,7 @@ class Wizard:
         self.jump_available = True
       if self.y_speed > 0:
         self.y_speed = 0
-        self.y = int((self.y)/self.world.square_size)*self.world.square_size
+        self.y = int((self.y)/self.world.square_size)*self.world.square_size+(69-Wizard.FEED_Y)
         
     if not supported:
       self.y_speed += 1*self.screen.frame_speed

@@ -1,6 +1,7 @@
 from json import dump
 from save import Save
 from os.path import exists
+from global_variables import GLOBAL
 class Settings:
   keys = [
     ['k_left', 'q'],
@@ -19,6 +20,7 @@ class Settings:
   ]
   attrs = [
     ['fps', 30],
+    ['unlocked_levels', 2]
   ]
   for index, (name, key) in enumerate(keys):
       if name in Save.save:
@@ -41,4 +43,11 @@ class Settings:
       dict.update({key: value})
     with open(Save.saveFile, 'w') as f:
       dump(dict, f)
+  def render():
+    screen = GLOBAL.variables['screen']
+    y = 0
+    for key in Settings.keys:
+      screen.render_text(key[0], 50, y, color=(255,255,255), fontsize=40)
+      screen.render_text(key[1], 600, y, color=(255,255,255), fontsize=40)
+      y += 60
 Settings.init()

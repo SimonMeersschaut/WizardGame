@@ -42,7 +42,9 @@ class World:
     World.time_limit = 0
     World.level_time_limit = 1
     World.time_started = 0
-    World.next_level()
+    World.state = ''
+    World.time_completed = time()-2
+    #World.get_level(Wo)
     with open('world.json', 'r') as f:
       file_content = load(f)['levels']
       World.levels = len(file_content)
@@ -53,7 +55,7 @@ class World:
     World.current_level = []
     finish_x = 0
     finish_y = 1920
-    print('get level')
+    GLOBAL.variables['screen'].time_speed = 1
     with open('world.json', 'r') as f:
       print('start')
       file_content = load(f)['levels']
@@ -109,9 +111,16 @@ class World:
         else:
           print(obj)
   def next_level():
+    if World.state != 'completed':
+      World.state = 'completed'
+      GLOBAL.variables['screen'].time_speed = 0.1
+      World.time_completed = time()
+  def load_next_level():
     World.level += 1
+    GLOBAL.variables['screen'].time_speed = 1
+    GLOBAL.variables['settings'].unlocked_levels = max(World.level, GLOBAL.variables['settings'].unlocked_levels)
+    GLOBAL.variables['settings'].save()
     World.load_level()
-
   def load_level():
     World.time_started = time() 
     Characters.init()
@@ -130,6 +139,21 @@ class World:
     x1 = 200
     y1 = 10
     Screen.draw_rect(x1, y1, width, height, color=(255,0,0))
+    if World.state == 'completed':
+      #if round((time()-World.time_completed)*2.5) % 2 == 0:
+      chars = round((time()-World.time_completed)*20)
+      Screen.render_text('mission accomplished!'[0:chars], 500, 300, color=(20,20,20))
+      if time()-World.time_completed > 2:
+        World.state = ''
+        World.load_next_level()
+    try:
+      list = Tutorial.TEXT[World.level-1]
+      camera_x = GLOBAL.variables['camera'].x
+      for text, posx, posy in list:
+
+        Screen.render_text(text, posx-camera_x, posy, color=(255,255,255), fontsize=40)
+    except:
+      pass
   def get_square(xpos, ypos):
     xv, yv = (int(xpos/World.square_size), int(ypos/World.square_size))
     return (xv, yv)
@@ -170,7 +194,10 @@ class World:
     World.load_level()
     #World.returnToMainMenu()
 
-
+class Tutorial:
+  TEXT = [
+    [('use <WASD> to walk and jump with <SPACE>', 50, 200), ('Collect books for new enchantmens', 5994, 297)]
+  ]
 #  @classmethod
 #  def onUpdate(cls, state, **options):
 #    def decorator(f):

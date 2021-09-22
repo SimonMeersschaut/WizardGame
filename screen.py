@@ -10,17 +10,26 @@ from global_variables import GLOBAL
 from settings import Settings
 class Screen:
   render_functions = []
+  BACKGROUND_COLORS = {
+    'levels_menu':(12,12,12),
+    'settings':(20,20,20),
+    'game':(44, 165, 255)
+  }
+  NO_ALPHAS = ['ground.png', 'ground_bottom.png', 'spikes_bottom.png']
   @classmethod
   def init(cls):
     import pygame
     pygame.init()
+    cls.imgs = {}
     cls.clock = pygame.time.Clock()
     cls.running = True
     infoObject = pygame.display.Info()
     cls.window_height = infoObject.current_h
     cls.window_width = infoObject.current_w
     cls.display = pygame.display.set_mode((cls.window_width, cls.window_height), pygame.FULLSCREEN)
-    cls.font = pygame.font.Font('freesansbold.ttf', 100) 
+    background_image = pygame.image.load('textures/background.jpg')
+    cls.background_image = background_image.convert()
+    cls.fonts = {100:pygame.font.Font('freesansbold.ttf', 100)}
     cls.render_functions = []
     cls.bg_color = (255,255,255)
     cls.state = 'starting'
@@ -28,14 +37,15 @@ class Screen:
     cls.event_types = []
     cls.clickListener = []
     cls.keys = []
-    cls.imgs = {}
+    
     cls.last_time = time()
     cls.frame_speed = 0
     cls.mouseDown = False
     cls.mousePos = (0,0)
+    cls.time_speed = 1
     cls.texts = {}
   def check_events():
-    Screen.frame_speed = 1/((time()-Screen.last_time)*60)
+    Screen.frame_speed = (1/((time()-Screen.last_time)*60))*Screen.time_speed
     Screen.last_time = time()
     Screen.events = pygame.event.get()
     Screen.event_types = [event.type for event in Screen.events]
@@ -45,6 +55,7 @@ class Screen:
       Screen.mouseDown = True
       x, y = pygame.mouse.get_pos()
       Screen.mousePos = (x,y)
+      print((x+Camera.x, y))
       
       for click in Screen.clickListener:
         x1, y1, x2, y2 = click[0]
@@ -55,44 +66,50 @@ class Screen:
     if pygame.MOUSEBUTTONUP in Screen.event_types:
       Screen.mouseDown = False
     #Screen.keys = []
-    for let in Settings.keys:
-      for event in Screen.events:
-        if event.type == pygame.KEYDOWN:
-          if len(let[1]) == 1:
-            key = ord(let[1])
-            if key == event.key:
-              Screen.keys.append(let[1])
-          else:
-            key = int(let[1])
-            if key == event.key:
-              Screen.keys.append(let[0])
-        if event.type == pygame.KEYUP:
-          if len(let[1]) == 1:
-            key = ord(let[1])
-            if key == event.key:
+    for event in Screen.events:
+      if event.type == pygame.KEYDOWN:
+        if event.key == pygame.K_ESCAPE:
+          Screen.state = 'main_menu'
+        else:
+          for let in Settings.keys:
+            if let[1] == 'shift':
+              if event.key == pygame.K_LSHIFT:
+                Screen.keys.append('shift')
+            else:
               try:
-                Screen.keys.remove(let[1])
+                key = int(let[1])
               except ValueError:
-                pass
+                key = ord(let[1])
+              if key == event.key:
+                Screen.keys.append(let[1])
+      elif event.type == pygame.KEYUP:
+        for let in Settings.keys:
+          if let[1] == 'shift':
+            if event.key == pygame.K_LSHIFT:
+              Screen.keys.remove('shift')
           else:
-            key = int(let[1])
+            try:
+              key = int(let[1])
+            except ValueError:
+              key = ord(let[1])
             if key == event.key:
-              try:
-                Screen.keys.remove(let[0])
-              except ValueError:
-                pass
-
+              Screen.keys.remove(let[1])
   
   def render():
-    Screen.display.fill(Screen.bg_color)
+    if Screen.state in Screen.BACKGROUND_COLORS:
+      Screen.display.fill(Screen.BACKGROUND_COLORS[Screen.state])
+    else:
+      Screen.display.fill(Screen.bg_color)
     if Screen.state == 'game':
-      Screen.renderIMG('background.jpg', (0-(Camera.x/25),-20), resize=2, full_scale=True, visible=1920)
-    if Screen.state == 'game':
+      Screen.display.blit(Screen.background_image, (0,0))
+      #Screen.renderIMG('background.jpg', (0-(Camera.x/25),-20), resize=2, full_scale=True, visible=1920)
       GLOBAL.variables["characters"].render()
       GLOBAL.variables["world"].render()
       GLOBAL.variables['magic'].render()
-    elif Screen.state == 'main_menu':
+    elif '_menu' in Screen.state:
       GLOBAL.variables["main_menu"].render()
+    elif Screen.state == 'settings':
+      GLOBAL.variables['settings'].render()
     GLOBAL.variables["camera"].render()
     Screen.check_events()
     pygame.display.flip()
@@ -119,6 +136,8 @@ class Screen:
         else:
           
           img = Screen.scale(img, resize)
+      if path in Screen.NO_ALPHAS:
+        img = img.convert()
       Screen.imgs.update({path:img})
 
   #def blitIMG(img, pos):
@@ -167,9 +186,12 @@ class Screen:
       pygame.draw.circle(Screen.display, color, pos, radius, border_width)
   def draw_line(pos1, pos2, color=(0,0,0), width=5):
     pygame.draw.line(Screen.display, color, pos1, pos2, width)
-  def render_text(text, x, y, color=(0,0,0)):
+  def render_text(text, x, y, color=(0,0,0), fontsize=100):
+    if not(fontsize in list(Screen.fonts.keys())):
+      Screen.fonts.update({fontsize:pygame.font.Font('freesansbold.ttf', fontsize)})
     if not(text in Screen.texts):
-      Screen.texts.update({text:Screen.font.render(text, True, color)})
+      font = Screen.fonts[fontsize]
+      Screen.texts.update({text:font.render(text, True, color)})
     Screen.display.blit(Screen.texts[text], (x,y))
   def click(x1, y1, x2, y2):
     def decorator(f):
@@ -203,11 +225,11 @@ class Camera:
     #    Camera.hor_speed += ((GLOBAL.variables["characters"].characters[0].x - Camera.x)-(GLOBAL.variables["screen"].window_width*0.7))/100
     #if GLOBAL.variables["characters"].characters[0].x - Camera.x < GLOBAL.variables["screen"].window_width*0.2:
     #  Camera.hor_speed += ((GLOBAL.variables["characters"].characters[0].x - Camera.x)-(GLOBAL.variables["screen"].window_width*0.2))/100
-    afstand_midden = (GLOBAL.variables["characters"].characters[0].x - Camera.x)-GLOBAL.variables["screen"].window_width*0.5
+    afstand_midden = ((GLOBAL.variables["characters"].characters[0].x - Camera.x)-GLOBAL.variables["screen"].window_width*0.5)+100
     if afstand_midden > -100:
-      Camera.x += (afstand_midden+100)/25
-    elif afstand_midden < -500:
-      Camera.x += (afstand_midden)/200
+      Camera.x += (afstand_midden+100)/20
+    elif afstand_midden < -500: #links
+      Camera.x += (afstand_midden)/100
       
     #Camera.hor_speed += ((GLOBAL.variables["characters"].characters[0].x - Camera.x)-(GLOBAL.variables["screen"].window_width*0.7))/500
     #Camera.x += Camera.hor_speed
