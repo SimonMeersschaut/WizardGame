@@ -1,13 +1,17 @@
 from screen import Screen
 from global_variables import GLOBAL
 class Menu:
-  
+  BOSS_FIGHTS = [5]
   class Level:
     WIDTH = 200
     offset_x = 20
     def __init__(self, index, last):
+      
       self.index = index
       self.last = bool(last)
+      self.text_color = (255,255,255)
+      if index in Menu.BOSS_FIGHTS:
+          self.text_color = (212, 129, 130)
       if self.last:
         self.color = (20,20,20)
       else:
@@ -20,16 +24,16 @@ class Menu:
         x += Menu.Level.WIDTH+10
         if x+Menu.Level.WIDTH > Screen.window_width:
           #Menu.Level.offset_x = abs((Screen.window_width-(x+Menu.Level.WIDTH))/2)
-          print(Menu.Level.offset_x)
           y += Menu.Level.WIDTH+10
           x = 0
     def render(self):
       x, y = Screen.mousePos
       if self.x < x < self.x+Menu.Level.WIDTH and self.y < y < self.y+Menu.Level.WIDTH:
         Screen.draw_rect(self.x+Menu.Level.offset_x-2, self.y-2, Menu.Level.WIDTH+4, Menu.Level.WIDTH+4, color=(255,255,255))
-
+      else:
+        Screen.draw_rect(self.x+Menu.Level.offset_x-2, self.y-2, Menu.Level.WIDTH+4, Menu.Level.WIDTH+4, color=(40,40,40))
       Screen.draw_rect(self.x+Menu.Level.offset_x, self.y, Menu.Level.WIDTH, Menu.Level.WIDTH, color=self.color)
-      Screen.render_text(str(self.index+1), self.x+Menu.Level.offset_x+10, self.y, color=(255,255,255))
+      Screen.render_text(str(self.index+1), self.x+Menu.Level.offset_x+10, self.y, color=self.text_color)
       
     def clicked(self, x, y):
       if self.x < x < self.x+Menu.Level.WIDTH and self.y < y < self.y+Menu.Level.WIDTH:
@@ -70,10 +74,9 @@ class Menu:
         x, y = Screen.mousePos
         for level in Menu.levels:
           level.clicked(x, y)
-    print(Screen.state)
     #if 1920 > Screen.mousePos[0] > 0:
     #  Screen.state = 'game'
   def create_levels():
     unlocked = GLOBAL.variables['settings'].unlocked_levels
     Menu.levels = [Menu.Level(i, (i+1)==unlocked) for i in range(min(GLOBAL.variables['world'].levels, unlocked))]
-    print(f'LEVELS:' + str(GLOBAL.variables['world'].levels))
+    #print(f'LEVELS:' + str(GLOBAL.variables['world'].levels))

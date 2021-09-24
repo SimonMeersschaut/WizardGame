@@ -257,14 +257,17 @@ class Witch(Entity):
       self.color = (self.color+1)%2
       if self.color == 0:
         self.target_y = self.start_y-150
-        Characters.createNew('darkmind', self.x, self.y+100, 'gray')
+        Characters.createNew('darkmind', self.x, self.y+130, 'gray')
       else:
         self.target_y = self.start_y
-        Characters.createNew('darkmind', self.x, self.y+100, 'red')
+        Characters.createNew('darkmind', self.x, self.y+130, 'red')
       
   def renderMe(self):
     GLOBAL.variables["screen"].renderIMG(self.img, (self.x-GLOBAL.variables["camera"].x, self.y))
-    if time()-self.last_attack > 2:
+    for i in range(self.hp):
+      GLOBAL.variables["screen"].renderIMG("heart.png", (self.x-GLOBAL.variables["camera"].x+(i*50), self.y-10))
+    #GLOBAL.variables["screen"].renderIMG(self.img, (self.x-GLOBAL.variables["camera"].x, self.y))
+    if time()-self.last_attack > 2 and 0<self.x-GLOBAL.variables["camera"].x<1920:
       self.attack()
     if self.target_y-self.y > 1:
       self.y += GLOBAL.variables["screen"].frame_speed*2
@@ -273,11 +276,10 @@ class Witch(Entity):
     #self.check_collision()
   def hit(self, obj):
     if type(obj) == DarkMinds:
-      if obj.angle == 180:
-        print('hit')
+      if obj.angle == 180 and obj.exists:
         obj.exists = False
         self.hp -= 1
-      
+    
     if type(obj) == Characters.wizard:
       GLOBAL.variables["world"].die()
 
