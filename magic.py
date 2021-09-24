@@ -21,7 +21,8 @@ class Shield:
 
   def hit(self, obj):
     if type(obj) == DarkMinds:
-      obj.exists = False
+      #obj.direction += 180
+      obj.reverse()
       self.exists = False
 
 class Shoot:
@@ -34,8 +35,8 @@ class Shoot:
     self.size = 64
     self.image = 'shoot.png'
     self.created = time()
-    for x in range(int(self.x), int(self.x)+self.direction[0]*Shoot.BACKFIRE*2, GLOBAL.variables['world'].square_size):
-      for y in range(int(self.y), int(self.y)+self.direction[1]*Shoot.BACKFIRE*2, GLOBAL.variables['world'].square_size):
+    for x in range(int(self.x), int(self.x)-self.direction[0]*Shoot.BACKFIRE*2, GLOBAL.variables['world'].square_size):
+      for y in range(int(self.y), int(self.y)-self.direction[1]*Shoot.BACKFIRE*2, GLOBAL.variables['world'].square_size):
         if GLOBAL.variables['world'].get_block(x, y) in GLOBAL.variables['world'].grounds:
           self.exists = False
     if self.exists:
@@ -74,16 +75,36 @@ class Dash:
   def __init__(self, x, y):
     possible = True
     distance = 50
-    y = GLOBAL.variables['characters'].wizard.y
-    for x in range(int(GLOBAL.variables['characters'].wizard.x), int(GLOBAL.variables['characters'].wizard.x+distance), int(GLOBAL.variables['world'].square_size/2)):
-      block = GLOBAL.variables['world'].get_block(x, y)
-      if block in GLOBAL.variables['world'].grounds or block in GLOBAL.variables['world'].standables:
-        possible = False
+    for x in range(int(GLOBAL.variables['characters'].wizard.x), int(GLOBAL.variables['characters'].wizard.x+(distance*self.direction[0])), int(GLOBAL.variables['world'].square_size/2)):
+      for y in range(int(GLOBAL.variables['characters'].wizard.y), int(GLOBAL.variables['characters'].wizard.y+(distance*self.direction[1])), int(GLOBAL.variables['world'].square_size/2)):
+        block = GLOBAL.variables['world'].get_block(x, y)
+        if block in GLOBAL.variables['world'].grounds or block in GLOBAL.variables['world'].standables:
+          possible = False
     if possible:
-      GLOBAL.variables['characters'].wizard.x_speed += distance
+      #GLOBAL.variables['characters'].wizard.x_speed += distance
+      GLOBAL.variables['characters'].wizard.x_speed = self.direction[0]*distance
+      GLOBAL.variables['characters'].wizard.y_speed = self.direction[1]*distance
+      print('DASH')
+      #input(GLOBAL.variables['characters'].wizard.y_speed)
     self.exists = False
   def render(self):
     pass
+class Dash_left(Dash):
+  def __init__(self, x, y):
+    self.direction = (-1,0)
+    super().__init__(x, y)
+class Dash_right(Dash):
+  def __init__(self, x, y):
+    self.direction = (1,0)
+    super().__init__(x, y)
+class Dash_up(Dash):
+  def __init__(self, x, y):
+    self.direction = (0,-1)
+    super().__init__(x, y)
+class Dash_down(Dash):
+  def __init__(self, x, y):
+    self.direction = (0,1)
+    super().__init__(x, y)
 
 class Magic:
   #SPELLS
@@ -91,11 +112,14 @@ class Magic:
   SPELLS = {
     'none':{},
     'green':{
-      '45':(Dash, 1),
-      "14":(None, 0)
+      '45':(Dash_right, 1),
+      '34':(Dash_left, 1),
+      '14':(Dash_up, 1),
+      '47':(Dash_down, 1)
+      #"14":(None, 0)
     },
     'red':{
-      "046":(Shield, 10),
+      "03":(Shield, 1),
       '45':(Shoot_right, 1),
       '34':(Shoot_left, 1),
       '14':(Shoot_up, 1),
@@ -210,7 +234,7 @@ class Magic:
        #    Magic.refreshed = tijd
        #    #Magic.used = False
       Magic.activated_balls = sorted(Magic.activated_balls)
-      if (tijd-Magic.refreshed > .2 and balls == []) or (balls == []):
+      if (tijd-Magic.refreshed > 1 and balls == []):
         Magic.activated_balls = []
       #  #Magic.used = False
       #  #Magic.spawned = False

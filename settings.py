@@ -19,7 +19,7 @@ class Settings:
     ['k_ball_9', '3']
   ]
   attrs = [
-    ['fps', 30],
+    ['fps', 1],
     ['unlocked_levels', 2]
   ]
   for index, (name, key) in enumerate(keys):

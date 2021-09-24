@@ -45,7 +45,7 @@ class Screen:
     cls.time_speed = 1
     cls.texts = {}
   def check_events():
-    Screen.frame_speed = (1/((time()-Screen.last_time)*60))*Screen.time_speed
+    Screen.frame_speed = (((time()-Screen.last_time)*60))*Screen.time_speed
     Screen.last_time = time()
     Screen.events = pygame.event.get()
     Screen.event_types = [event.type for event in Screen.events]
@@ -103,8 +103,8 @@ class Screen:
     if Screen.state == 'game':
       Screen.display.blit(Screen.background_image, (0,0))
       #Screen.renderIMG('background.jpg', (0-(Camera.x/25),-20), resize=2, full_scale=True, visible=1920)
-      GLOBAL.variables["characters"].render()
       GLOBAL.variables["world"].render()
+      GLOBAL.variables["characters"].render()
       GLOBAL.variables['magic'].render()
     elif '_menu' in Screen.state:
       GLOBAL.variables["main_menu"].render()
@@ -138,6 +138,8 @@ class Screen:
           img = Screen.scale(img, resize)
       if path in Screen.NO_ALPHAS:
         img = img.convert()
+      else:
+        img = img.convert_alpha()
       Screen.imgs.update({path:img})
 
   #def blitIMG(img, pos):

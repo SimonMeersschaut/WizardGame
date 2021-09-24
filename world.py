@@ -68,7 +68,7 @@ class World:
       for name, x, y in file_content:
         if not('book' in name):
           if name in GLOBAL.variables['characters'].NAMES:
-            GLOBAL.variables['characters'].createNew((name, x*World.square_size, y*World.square_size))
+            GLOBAL.variables['characters'].createNew(name, x*World.square_size, y*World.square_size)
             continue
           try:
             World.map[x][y] = name
