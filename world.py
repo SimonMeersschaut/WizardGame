@@ -66,12 +66,16 @@ class World:
         GLOBAL.variables['screen'].time_speed = 1
         with open('world.json', 'r') as f:
             print('start')
-            file_content = load(f)['levels']
+            file_content = load(f)
+            GLOBAL.variables['screen'].load_background(
+                file_content['config']['backgrounds'][level-1])
+            file_content = file_content['levels']
             World.levels = len(file_content)
             file_content = file_content[level-1]
             print(file_content)
             World.time_limit = time()+100  # time()+file_content[-1]
             World.level_time_limit = time()+100  # file_content[-1]
+
             finish_x = 0
             for name, x, y in file_content:
                 if not('book' in name):

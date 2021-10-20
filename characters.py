@@ -181,11 +181,11 @@ class Entity:
 
 
 class DarkMinds(Entity):
-    SPEED = 5
     IMGS = {}
 
     def __init__(self, arg, color='red'):
         x, y = (arg[0], arg[1])
+        self.speed = 5
         try:
             self.angle = arg[2]
         except IndexError:
@@ -202,6 +202,7 @@ class DarkMinds(Entity):
     def reverse(self):
         if self.color == 'red':
             self.angle += 180
+            self.speed = 8
 
     def activate(self):
         self.active = True
@@ -214,9 +215,9 @@ class DarkMinds(Entity):
 
     def move(self):
         if self.color == 'blue':
-            self.x -= cos(radians(self.angle))*DarkMinds.SPEED * \
+            self.x -= cos(radians(self.angle))*self.speed * \
                 GLOBAL.variables["screen"].frame_speed
-            self.y += sin(radians(self.angle))*DarkMinds.SPEED * \
+            self.y += sin(radians(self.angle))*self.speed * \
                 GLOBAL.variables['screen'].frame_speed
             self.angle += 1
             #self.angle = self.angle%360
@@ -226,7 +227,7 @@ class DarkMinds(Entity):
                 self.y += 1*GLOBAL.variables['screen'].frame_speed
             elif y < self.y:
                 self.y -= 1*GLOBAL.variables['screen'].frame_speed
-            self.x -= cos(radians(self.angle))*DarkMinds.SPEED * \
+            self.x -= cos(radians(self.angle))*self.speed * \
                 GLOBAL.variables['screen'].frame_speed
         elif self.color == 'gray':
             y = Characters.wizard.y
@@ -235,9 +236,9 @@ class DarkMinds(Entity):
             #  self.y += 1
             # elif y < self.y:
             #  self.y -= 1
-            self.y += sin(radians(self.angle))*DarkMinds.SPEED * \
+            self.y += sin(radians(self.angle))*self.speed * \
                 GLOBAL.variables['screen'].frame_speed
-            self.x -= cos(radians(self.angle))*DarkMinds.SPEED * \
+            self.x -= cos(radians(self.angle))*self.speed * \
                 GLOBAL.variables['screen'].frame_speed
 
     def renderMe(self):
@@ -257,11 +258,13 @@ class DarkMinds(Entity):
 class DarkMindsRed(DarkMinds):
     def __init__(self, args):
         super().__init__(args, color='red')
+        self.speed = 5
 
 
 class DarkMindsGray(DarkMinds):
     def __init__(self, args):
         super().__init__(args, color='gray')
+        self.speed = 7
 
 
 class Witch(Entity):
@@ -329,6 +332,7 @@ class Spawn:
     def __init__(self, arg):
         Characters.wizard.x = arg[0]
         Characters.wizard.y = arg[1]
+        self.exists = False
 
 
 class Characters:

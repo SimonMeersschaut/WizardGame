@@ -49,7 +49,7 @@ class World:
                     return World.Config.colours[index]
                 except IndexError:
                     World.Config.colours.append(
-                        randint(0, 255), randint(0, 255), randint(0, 255))
+                        (randint(0, 255), randint(0, 255), randint(0, 255)))
                     return World.Config.colours[index]
 
     def convert_world():

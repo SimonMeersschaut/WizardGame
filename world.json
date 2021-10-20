@@ -1,7 +1,12 @@
 {
   "config": {
-    "background": [],
-    "backgrounds": [],
+    "backgrounds": [
+      "grassland.jpg",
+      "grassland.jpg",
+      "grassland.jpg",
+      "grassland.jpg",
+      "grassland.jpg"
+    ],
     "block_size": [
       128,
       128
@@ -75,6 +80,11 @@
         45,
         45,
         45
+      ],
+      [
+        235,
+        234,
+        97
       ]
     ],
     "world_size": [
@@ -84,6 +94,11 @@
   },
   "levels": [
     [
+      [
+        "spawn",
+        0,
+        5
+      ],
       [
         "ground.png",
         0,

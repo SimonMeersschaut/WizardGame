@@ -31,8 +31,7 @@ class Screen:
         cls.window_width = infoObject.current_w
         cls.display = pygame.display.set_mode(
             (cls.window_width, cls.window_height), pygame.FULLSCREEN)
-        background_image = pygame.image.load('textures/background.jpg')
-        cls.background_image = background_image.convert()
+
         cls.fonts = {100: pygame.font.Font('freesansbold.ttf', 100)}
         cls.render_functions = []
         cls.bg_color = (255, 255, 255)
@@ -48,6 +47,10 @@ class Screen:
         cls.mousePos = (0, 0)
         cls.time_speed = 1
         cls.texts = {}
+
+    def load_background(name):
+        Screen.background_image = pygame.image.load(
+            f'textures/{name}').convert()
 
     def check_events():
         if GLOBAL.variables['book'].open:
