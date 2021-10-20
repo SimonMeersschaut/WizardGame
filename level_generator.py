@@ -45,8 +45,12 @@ class World:
     def get_colour_of(name):
         for index, block in enumerate(World.Config.blocks):
             if name == block:
-                return World.Config.colours[index]
-        return (randint(0, 255), randint(0, 255), randint(0, 255))
+                try:
+                    return World.Config.colours[index]
+                except IndexError:
+                    World.Config.colours.append(
+                        randint(0, 255), randint(0, 255), randint(0, 255))
+                    return World.Config.colours[index]
 
     def convert_world():
         world = []
@@ -186,8 +190,11 @@ while running:
             x, y = event.pos
         if mouse_down:
             if button == 1:
-                World.set_block(
-                    x-offset, y, World.Config.blocks[selected_block_index])
+                try:
+                    World.set_block(
+                        x-offset, y, World.Config.blocks[selected_block_index])
+                except IndexError:
+                    pass
             elif button == 3:
                 World.set_block(x-offset, y, None)
     if press:

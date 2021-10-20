@@ -6,7 +6,7 @@ import numpy
 
 class Wizard:
     WALK_SPEED = 7.0
-    SPRINT_SPEED = 15.0
+    SPRINT_SPEED = 11.0
     JUMP_HEIGHT = 23
     JUMP_DELAY = .1
     FEED_Y = 62
@@ -325,9 +325,15 @@ class Witch(Entity):
             GLOBAL.variables["world"].die()
 
 
+class Spawn:
+    def __init__(self, arg):
+        Characters.wizard.x = arg[0]
+        Characters.wizard.y = arg[1]
+
+
 class Characters:
     NAMES = {"darkmind_gray": DarkMindsGray,
-             "darkmind_red": DarkMindsRed, "witch": Witch}
+             "darkmind_red": DarkMindsRed, "witch": Witch, "spawn": Spawn}
     characters = []
 
     def init():
