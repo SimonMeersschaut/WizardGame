@@ -5,14 +5,16 @@ from world import World
 from settings import Settings
 from main_menu import Menu
 from global_variables import GLOBAL
+from book import Book
 
-GLOBAL.variables.update({"screen":Screen, "characters":Characters, "world":World, "settings":Settings, "main_menu":Menu, "camera":Camera, "magic":Magic})
+GLOBAL.variables.update({"screen": Screen, "characters": Characters, "world": World,
+                        "settings": Settings, "main_menu": Menu, "camera": Camera, "magic": Magic, "book": Book})
 
 for module in GLOBAL.variables.values():
-  module.init()
+    module.init()
 Screen.state = 'main_menu'
 
 while Screen.running:
-  Screen.render()
+    Screen.render()
 
 Settings.save()
