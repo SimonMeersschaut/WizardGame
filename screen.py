@@ -140,6 +140,7 @@ class Screen:
                 img = pygame.image.load(path)
             except FileNotFoundError:
                 input('FileNotFound: '+path)
+                raise FileNotFoundError(f'file {path}')
             if resize:
                 if full_scale:
                     size = img.get_rect()

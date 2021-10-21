@@ -32,8 +32,8 @@ class World:
 
     current_level = []
     map = []
-    height = 20
-    width = 90
+    with open('world.json', 'r') as f:
+        (width, height) = load(f)['config']['world_size']
     square_size = 128
     standables = ['ground', 'ground_bottom', 'spikes_bottom', 'marmer']
     grounds = ['ground.png', 'ground_bottom.png',
@@ -92,7 +92,8 @@ class World:
                     World.map[x][y] = book
                 xpos, ypos = ((x)*World.square_size, (y)*World.square_size)
                 if xpos > finish_x:
-                    finish_x = xpos
+                    if not(name in list(GLOBAL.variables["characters"].NAMES.keys())):
+                        finish_x = xpos
 
                     #finish_y = min(finish_y, ypos)
                 if type(name) != str or not('book' in name):
@@ -102,6 +103,7 @@ class World:
             for name, x, y in file_content:
                 xpos, ypos = ((x)*World.square_size, (y)*World.square_size)
                 if xpos == finish_x:
+
                     finish_y = min(finish_y, ypos)
         x, y = (int(finish_x/World.square_size),
                 int(finish_y/World.square_size))
