@@ -28,8 +28,8 @@ class World:
     class Config:
         backgrounds = []
         blocks = ["monster"]
-        world_size = (100, 100)
-        block_size = (64, 64)
+        world_size = (500, 10)
+        block_size = (128, 128)
         colours = []
 
     def get_level(data):
@@ -175,9 +175,9 @@ while running:
                 if World.current_level > 0:
                     World.current_level -= 1
             if event.key == pygame.K_a:
-                speed = 1
+                speed = 3
             elif event.key == pygame.K_z:
-                speed = -1
+                speed = -3
             else:
                 speed = 0
         if event.type == pygame.KEYUP:
