@@ -10,7 +10,7 @@ class Wizard:
     SPRINT_SPEED = 11.0
     JUMP_HEIGHT = 23
     JUMP_DELAY = .1
-    FEED_Y = 62
+    FEED_Y = 60
 
     def __init__(self):
 
@@ -37,28 +37,36 @@ class Wizard:
         self.arm = self.screen.returnImage('arm.png')
         self.arm_angle = 0
         self.arm_angle_tartget = 0
-        self.size = 128
+        self.size = (128, 125)
 
     def renderMe(self):
 
         # VARIABLES
-        left_feed = (self.x+23*self.scale, self.y+Wizard.FEED_Y*self.scale)
+        left_feed = (self.x+27*self.scale, self.y+Wizard.FEED_Y*self.scale)
         right_feed = (self.x+42*self.scale, self.y+Wizard.FEED_Y*self.scale)
         arm = (self.x+21*self.scale, self.y+21*self.scale)
         head = (self.x+34*self.scale, self.y+7*self.scale)
         x_speed = self.x_speed*GLOBAL.variables['screen'].frame_speed
-        if x_speed > 0:
-            if not(GLOBAL.variables['world'].get_block((right_feed[0]+x_speed), right_feed[1]-10) in GLOBAL.variables['world'].standables):
-                self.x += x_speed
-            else:
-                self.x_speed = 0
+        go_right = True
+        # for pos in [(self.x+51*self.scale, self.y+21*self.scale), (self.x+48*self.scale, self.y+58*self.scale)]:
+        #    if GLOBAL.variables['world'].get_block(pos) in GLOBAL.variables['world'].standables:
+        #        # self.x_speed = -self.x_speed
+        #        self.x -= 1
+        #        x_speed = 0
+        if all([not(GLOBAL.variables['world'].get_block(pos) in GLOBAL.variables['world'].standables) for pos in [(self.x+51*self.scale, self.y+22*self.scale), (self.x+50*self.scale, self.y+44*self.scale)]]):
+            self.x += x_speed
+        else:
+            self.x_speed = 0
+            go_right = False
+            self.x -= 7
+            print('stop')
         if abs(self.x_speed) > 0.1:
-            #self.x_speed -= GLOBAL.variables['screen'].frame_speed
+            # self.x_speed -= GLOBAL.variables['screen'].frame_speed
             self.x_speed -= (GLOBAL.variables['screen'].frame_speed) * \
                 numpy.sign(self.x_speed)
         else:
             self.x_speed = 0
-        if GLOBAL.variables['world'].get_block(head[0], head[1]) in GLOBAL.variables['world'].standables:
+        if GLOBAL.variables['world'].get_block(head) in GLOBAL.variables['world'].standables:
             self.y -= 3
             self.y_speed = 0
         if head[1] < -10:
@@ -69,6 +77,10 @@ class Wizard:
                 position) in self.world.standables) for position in [left_feed, right_feed]])
         except IndexError:
             supported = False
+        for pos in [(self.x+27*self.scale, self.y), (self.x+42*self.scale, self.y)]:
+            if GLOBAL.variables['world'].get_block(pos) in GLOBAL.variables['world'].standables:
+                self.y += 1
+                self.y_speed = max(0, self.y_speed)
 
         if supported and self.y > 5:
             self.touched_ground = True
@@ -80,7 +92,7 @@ class Wizard:
             self.arm, (arm[0]-GLOBAL.variables["camera"].x, arm[1]), (0, 26), self.arm_angle)
         # if GLOBAL.variables['magic'].conjuring != '':
         #  self.screen.draw_circle((self.x+64*2, self.y+23*2), radius=10, color=GLOBAL.variables['magic'].COLORS[GLOBAL.variables['magic'].conjuring])
-        #rect = rect.move(arm[0]-GLOBAL.variables["camera"].x, arm[1])
+        # rect = rect.move(arm[0]-GLOBAL.variables["camera"].x, arm[1])
         for position in [(self.x, self.y), (self.x+128, self.y), left_feed, right_feed]:
             if type(self.world.get_block(position)) != str and type(self.world.get_block(position)) != type(None):
                 x_pos, y_pos = (position[0], position[1])
@@ -174,7 +186,7 @@ class Finish:
 
 class Characters:
     NAMES = {"darkmind_gray": DarkMindsGray, "darkmind_blue": DarkMindsblue,
-             "darkmind_red": DarkMindsRed, "witch": Witch, "spawn": Spawn, "finish": Finish, "spikey": Spikey}
+             "witch": Witch, "spawn": Spawn, "finish": Finish, "gromott": Gromott, "pumpkin": Pumpkin, "gamaru": Gamaru}
     characters = []
 
     def init():

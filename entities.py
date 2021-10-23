@@ -4,12 +4,12 @@ from math import sqrt, sin, cos, radians
 
 
 class Entity:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
+    def __init__(self, position):
+        self.x = position[0]
+        self.y = position[1]
         self.exists = True
         self.active = False
-        self.size = 64
+        self.size = (64, 64)
 
     def check_collision(self):
         if not(-200 < self.x-GLOBAL.variables["camera"].x < 2100) or not(-200 < self.y < 1280):
@@ -17,9 +17,9 @@ class Entity:
         for obj in GLOBAL.variables["characters"].characters + GLOBAL.variables["magic"].current_spells:
             if obj != self:
                 obj_x, obj_y, obj_size = (obj.x, obj.y, obj.size)
-                for punt in [(self.x, self.y), (self.x+self.size, self.y), (self.x, self.y+self.size), (self.x+self.size, self.y+self.size)]:
+                for punt in [(self.x, self.y), (self.x+self.size[0], self.y), (self.x, self.y+self.size[1]), (self.x+self.size[0], self.y+self.size[1])]:
                     px, py = punt
-                    if obj_x < px < obj_x+obj_size and obj_y < py < obj_y+obj_size:
+                    if obj_x < px < obj_x+obj_size[0] and obj_y < py < obj_y+obj_size[1]:
                         try:
                             obj.hit(self)
                         except AttributeError:
@@ -37,8 +37,8 @@ class DarkMinds(Entity):
         except IndexError:
             self.angle = 0
 
-        super().__init__(x, y)
-        self.size = 64
+        super().__init__((x, y))
+        self.size = (64, 64)
         self.color = color
         # self.img = f'DarkMind_{self.color}.png'
         if not(self.color in list(DarkMinds.IMGS.keys())):
@@ -101,12 +101,6 @@ class DarkMinds(Entity):
             self.check_collision()
 
 
-class DarkMindsRed(DarkMinds):
-    def __init__(self, args):
-        super().__init__(args, color='red')
-        self.speed = 5
-
-
 class DarkMindsblue(DarkMinds):
     def __init__(self, args):
         super().__init__(args, color='blue')
@@ -121,16 +115,15 @@ class DarkMindsGray(DarkMinds):
 
 class Witch(Entity):
     def __init__(self, arg):
-        x, y = arg
-        super().__init__(x, y)
-        self.size = 513
+        super().__init__(arg)
+        self.size = (513, 513)
         self.img = f'witch.png'
         self.last_attack = time()
         self.hp = 3
         self.start_angle = 50
         self.color = 0
-        self.target_y = y
-        self.start_y = y
+        self.target_y = arg[1]
+        self.start_y = arg[1]
 
     def attack(self):
         self.last_attack = time()
@@ -153,7 +146,7 @@ class Witch(Entity):
             else:
                 self.target_y = self.start_y
                 GLOBAL.variables["characters"].createNew(
-                    'darkmind_red', self.x, self.y+130)
+                    'darkmind_blue', self.x, self.y+130)
 
     def renderMe(self):
         GLOBAL.variables["screen"].renderIMG(
@@ -182,9 +175,9 @@ class Witch(Entity):
             GLOBAL.variables["world"].die()
 
 
-class Spikey(Entity):
+class Gromott(Entity):
     def __init__(self, args):
-        super().__init__(args[0], args[1])
+        super().__init__(args)
         self.spawn_time = time()
         self.direction = 'up'
         self.spawn_y = self.y
@@ -204,10 +197,55 @@ class Spikey(Entity):
             'stone.png', (self.x-GLOBAL.variables["camera"].x, self.y))
 
 
+class Pumpkin(Entity):
+    def __init__(self, args):
+        super().__init__(args)
+        self.time = 0
+
+    def rage(self):
+        self.target_y = 0
+        self.start_angle = 0
+        for i in range(self.start_angle, self.start_angle+360, 21):
+            GLOBAL.variables["characters"].createNew(
+                'darkmind_gray', self.x, self.y+100, i)
+            self.start_angle += 11
+        self.exists = False
+
+    def renderMe(self):
+        if sqrt((self.x-GLOBAL.variables['characters'].wizard.x)**2 + (self.y-GLOBAL.variables['characters'].wizard.y)**2) < 200:
+            self.time += GLOBAL.variables['screen'].frame_speed
+        if self.time > 40:
+            self.rage()
+        GLOBAL.variables['screen'].renderIMG(
+            'stone.png', (self.x-GLOBAL.variables['camera'].x, self.y))
+
+
 class Cauldron(Entity):
     def __init__(self, args):
-        super().__init__(args[0], args[1])
+        super().__init__(args)
         slef.exists = False
 
     def RenderMe(self):
         pass
+
+
+class Gamaru(Entity):
+    def __init__(self, args):
+        super().__init__(args)
+        self.size = (175, 50)
+        self.y_speed = 0
+        self.jumped = True
+
+    def renderMe(self):
+        block = GLOBAL.variables['world'].get_block(
+            self.x, self.y+self.size[1])
+        if not(block in GLOBAL.variables['world'].standables):
+            self.y_speed += GLOBAL.variables["screen"].frame_speed/2
+        else:
+            self.jumped = False
+        if not self.jumped:
+            self.jumped = True
+            self.y_speed = -100
+        self.y += self.y_speed
+        GLOBAL.variables['screen'].renderIMG(
+            'gamaru.png', (self.x-GLOBAL.variables['camera'].x, self.y))

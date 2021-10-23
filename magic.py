@@ -14,7 +14,7 @@ class Shield:
         self.x = x+30
         self.y = y
         self.exists = True
-        self.size = 64
+        self.size = (64, 64)
         self.created = time()
 
     def render(self):
@@ -38,7 +38,7 @@ class Shoot:
         self.x = x
         self.y = y
         self.exists = True
-        self.size = 64
+        self.size = (64, 64)
         self.image = 'shoot.png'
         self.created = time()
         for x in range(int(self.x), int(self.x)-self.direction[0]*Shoot.BACKFIRE*2, GLOBAL.variables['world'].square_size):
