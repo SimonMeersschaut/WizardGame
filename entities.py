@@ -4,7 +4,8 @@ from math import sqrt, sin, cos, radians
 
 
 class Entity:
-    def __init__(self, position):
+    def __init__(self, position, deadly=True):
+        self.deadly = deadly
         self.x = position[0]
         self.y = position[1]
         self.exists = True
@@ -16,12 +17,22 @@ class Entity:
             self.exists = False
         for obj in GLOBAL.variables["characters"].characters + GLOBAL.variables["magic"].current_spells:
             if obj != self:
-                obj_x, obj_y, obj_size = (obj.x, obj.y, obj.size)
-                for punt in [(self.x, self.y), (self.x+self.size[0], self.y), (self.x, self.y+self.size[1]), (self.x+self.size[0], self.y+self.size[1])]:
+                try:
+                    p1, p2, p3, p4 = obj.collission_points
+                except AttributeError:
+
+                    p1, p2,  p3, p4 = [(0, 0), (obj.size[0], 0),
+                                       (0, obj.size[1]), (obj.size[0], obj.size[1])]
+                p1, p2, p3, p4 = [(obj.x+point[0], obj.y+point[1])
+                                  for point in [p1, p2, p3, p4]]
+                for punt in [p1, p2, p3, p4]:
                     px, py = punt
-                    if obj_x < px < obj_x+obj_size[0] and obj_y < py < obj_y+obj_size[1]:
+                    if self.x < px < self.x+self.size[0] and self.y < py < self.y+self.size[1]:
                         try:
-                            obj.hit(self)
+                            if self.deadly and obj == GLOBAL.variables['characters'].wizard:
+                                GLOBAL.variables['world'].die()
+                            else:
+                                obj.hit(self)
                         except AttributeError:
                             pass
 
@@ -195,6 +206,7 @@ class Gromott(Entity):
 
         GLOBAL.variables['screen'].renderIMG(
             'stone.png', (self.x-GLOBAL.variables["camera"].x, self.y))
+        self.check_collision()
 
 
 class Pumpkin(Entity):
@@ -234,18 +246,32 @@ class Gamaru(Entity):
         super().__init__(args)
         self.size = (175, 50)
         self.y_speed = 0
-        self.jumped = True
+        self.jump = False
 
     def renderMe(self):
         block = GLOBAL.variables['world'].get_block(
             self.x, self.y+self.size[1])
         if not(block in GLOBAL.variables['world'].standables):
-            self.y_speed += GLOBAL.variables["screen"].frame_speed/2
-        else:
-            self.jumped = False
-        if not self.jumped:
-            self.jumped = True
-            self.y_speed = -100
-        self.y += self.y_speed
+            self.y_speed += GLOBAL.variables["screen"].frame_speed/4
+        else:  # OP GROND
+            if not self.jump:
+                self.jump = time()
+                self.y_speed = min(0, self.y_speed)
+        if self.jump != False:
+            if time()-self.jump > 1:
+                self.jump = False
+                self.y_speed = -10
+            # print(time()-self.jump)
+        self.y += self.y_speed*GLOBAL.variables['screen'].frame_speed
         GLOBAL.variables['screen'].renderIMG(
             'gamaru.png', (self.x-GLOBAL.variables['camera'].x, self.y))
+        self.check_collision()
+
+    def hit(self, obj):
+        if 'DarkMinds' in str(type(obj)):
+            if obj.angle == 180 and obj.exists:
+                obj.exists = False
+                self.hp -= 1
+
+        if type(obj) == GLOBAL.variables["characters"].wizard:
+            GLOBAL.variables["world"].die()

@@ -38,6 +38,7 @@ class Wizard:
         self.arm_angle = 0
         self.arm_angle_tartget = 0
         self.size = (128, 125)
+        self.collission_points = [(32, 2), (38, 108), (86, 8), (94, 116)]
 
     def renderMe(self):
 
@@ -56,6 +57,7 @@ class Wizard:
         if all([not(GLOBAL.variables['world'].get_block(pos) in GLOBAL.variables['world'].standables) for pos in [(self.x+51*self.scale, self.y+22*self.scale), (self.x+50*self.scale, self.y+44*self.scale)]]):
             self.x += x_speed
         else:
+
             self.x_speed = 0
             go_right = False
             self.x -= 7
@@ -166,8 +168,11 @@ class Wizard:
             GLOBAL.variables['world'].next_level()
 
     def hit(self, obj):
-        if 'DarkMinds' in str(type(obj)):
-            GLOBAL.variables["world"].die()
+        # if 'DarkMinds' in str(type(obj)):
+        # GLOBAL.variables["world"].die()
+        print(obj)
+        if obj.deadly:
+            GLOBAL.variables['world'].die()
 
 
 class Spawn:
