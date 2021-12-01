@@ -50,25 +50,24 @@ class Wizard:
         x_speed = self.x_speed*GLOBAL.variables['screen'].frame_speed
         go_right = True
         # for pos in [(self.x+51*self.scale, self.y+21*self.scale), (self.x+48*self.scale, self.y+58*self.scale)]:
-        #    if GLOBAL.variables['world'].get_block(pos) in GLOBAL.variables['world'].standables:
+        #    if self.world.get_block(pos) in self.world.standables:
         #        # self.x_speed = -self.x_speed
         #        self.x -= 1
         #        x_speed = 0
-        if all([not(GLOBAL.variables['world'].get_block(pos) in GLOBAL.variables['world'].standables) for pos in [(self.x+51*self.scale, self.y+22*self.scale), (self.x+50*self.scale, self.y+44*self.scale)]]):
+        if all([not(self.world.get_block(pos) in self.world.standables) for pos in [(self.x+51*self.scale, self.y+22*self.scale), (self.x+50*self.scale, self.y+44*self.scale)]]):
             self.x += x_speed
         else:
-
             self.x_speed = 0
             go_right = False
-            self.x -= 7
+            self.x -= 5
             print('stop')
-        if abs(self.x_speed) > 0.1:
+        if abs(self.x_speed) > 0.01:
             # self.x_speed -= GLOBAL.variables['screen'].frame_speed
             self.x_speed -= (GLOBAL.variables['screen'].frame_speed) * \
                 numpy.sign(self.x_speed)
         else:
             self.x_speed = 0
-        if GLOBAL.variables['world'].get_block(head) in GLOBAL.variables['world'].standables:
+        if self.world.get_block(head) in self.world.standables:
             self.y -= 3
             self.y_speed = 0
         if head[1] < -10:
@@ -78,9 +77,10 @@ class Wizard:
             supported = any([(self.world.get_block(
                 position) in self.world.standables) for position in [left_feed, right_feed]])
         except IndexError:
+            print('indexerror')
             supported = False
         for pos in [(self.x+27*self.scale, self.y), (self.x+42*self.scale, self.y)]:
-            if GLOBAL.variables['world'].get_block(pos) in GLOBAL.variables['world'].standables:
+            if self.world.get_block(pos) in self.world.standables:
                 self.y += 1
                 self.y_speed = max(0, self.y_speed)
 
@@ -95,7 +95,7 @@ class Wizard:
         # if GLOBAL.variables['magic'].conjuring != '':
         #  self.screen.draw_circle((self.x+64*2, self.y+23*2), radius=10, color=GLOBAL.variables['magic'].COLORS[GLOBAL.variables['magic'].conjuring])
         # rect = rect.move(arm[0]-GLOBAL.variables["camera"].x, arm[1])
-        for position in [(self.x, self.y), (self.x+128, self.y), left_feed, right_feed]:
+        for position in [head, left_feed, right_feed]:
             if type(self.world.get_block(position)) != str and type(self.world.get_block(position)) != type(None):
                 x_pos, y_pos = (position[0], position[1])
                 block = self.world.get_block(position)
@@ -143,8 +143,8 @@ class Wizard:
         if supported:
             positions = [(position[0], position[1]-2)
                          for position in [left_feed, right_feed, head]]
-            if any([GLOBAL.variables['world'].get_block(position) in GLOBAL.variables['world'].deadly for position in positions]):
-                GLOBAL.variables['world'].die()
+            if any([self.world.get_block(position) in self.world.deadly for position in positions]):
+                self.world.die()
             if not GLOBAL.variables["settings"].k_jump in self.screen.keys:
                 self.jump_available = True
             if self.y_speed > 0:
@@ -164,15 +164,15 @@ class Wizard:
             self.world.die()  # die
 
         self.y += self.y_speed*self.screen.frame_speed
-        if right_feed[0] >= GLOBAL.variables['world'].finish_x:
-            GLOBAL.variables['world'].next_level()
+        if right_feed[0] >= self.world.finish_x:
+            self.world.next_level()
 
     def hit(self, obj):
         # if 'DarkMinds' in str(type(obj)):
         # GLOBAL.variables["world"].die()
         print(obj)
         if obj.deadly:
-            GLOBAL.variables['world'].die()
+            self.world.die()
 
 
 class Spawn:
@@ -184,9 +184,15 @@ class Spawn:
 
 class Finish:
     def __init__(self, args):
-        GLOBAL.variables['world'].finish_x = arg[0]
-        GLOBAL.variables['world'].finish_y = arg[1]
-        self.exists = False
+        GLOBAL.variables['world'].finish_x = args[0]
+        GLOBAL.variables['world'].finish_y = args[1]
+        self.x, self.y = (args[0], args[1])
+        self.exists = True
+        self.img = GLOBAL.variables['screen'].returnImage('finish.png')
+
+    def renderMe(self):
+        GLOBAL.variables['screen'].renderSurface(
+            self.img, (self.x-GLOBAL.variables['camera'].x, self.y))
 
 
 class Characters:

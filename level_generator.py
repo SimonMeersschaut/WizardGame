@@ -29,7 +29,7 @@ class World:
         backgrounds = []
         blocks = ["monster"]
         world_size = (500, 10)
-        block_size = (128, 128)
+        block_size = (64, 64)
         colours = []
 
     def get_level(data):
@@ -56,9 +56,9 @@ class World:
                         return (randint(0, 255), randint(0, 255), randint(0, 255))
 
     def convert_world():
-        world=[]
+        world = []
         for level in enumerate(World.levels):
-            level_list=[]
+            level_list = []
             for x, row in enumerate(level[1]):
                 for y, item in enumerate(row):
                     if item != None:
@@ -67,31 +67,31 @@ class World:
         return world
 
     def render():
-        x_pos=0
+        x_pos = 0
         for x in World.levels[World.current_level]:
-            y_pos=0
+            y_pos = 0
             for y in x:
                 if y != None:
-                    colour=World.get_colour_of(y)
+                    colour = World.get_colour_of(y)
                     pygame.draw.rect(display, colour, (x_pos+offset, y_pos,
                                      World.Config.block_size[0], World.Config.block_size[1]))
                 y_pos += World.Config.block_size[1]
             x_pos += World.Config.block_size[0]
 
     def set_block(x, y, name):
-        x=int(x/World.Config.block_size[0])
-        y=int(y/World.Config.block_size[1])
-        World.levels[World.current_level].inhoud[x][y]=name
+        x = int(x/World.Config.block_size[0])
+        y = int(y/World.Config.block_size[1])
+        World.levels[World.current_level].inhoud[x][y] = name
 
 
 def save():
     print('SAVING')
-    configs=[attr for attr in dir(World.Config) if (not('__' in attr))]
-    config={}
+    configs = [attr for attr in dir(World.Config) if (not('__' in attr))]
+    config = {}
     for config_name in configs:
         config.update({config_name: getattr(World.Config, config_name)})
 
-    json_file={
+    json_file = {
         'config': config,
         'levels': World.convert_world()
     }
@@ -163,15 +163,15 @@ while running:
                 elif event.button == 5:
                     selected_block_index -= 1
                 else:
-                    mouse_down=True
-                    button=event.button
+                    mouse_down = True
+                    button = event.button
                 try:
-                    block_text=font.render(
+                    block_text = font.render(
                         World.Config.blocks[selected_block_index], True, (10, 10, 10))
                 except:
                     pass
         if event.type == pygame.KEYDOWN:
-            press=True
+            press = True
             if event.key == pygame.K_s:
                 if World.current_level > len(World.levels):
                     World.levels.append(Level())
@@ -180,19 +180,19 @@ while running:
                 if World.current_level > 0:
                     World.current_level -= 1
             if event.key == pygame.K_a:
-                speed=5
+                speed = 5
             elif event.key == pygame.K_z:
-                speed=-5
+                speed = -5
             else:
-                speed=0
+                speed = 0
         if event.type == pygame.KEYUP:
-            press=False
+            press = False
 
         if event.type == pygame.MOUSEBUTTONUP:
-            mouse_down=False
-            button=event.button
+            mouse_down = False
+            button = event.button
         if event.type == pygame.MOUSEMOTION:
-            x, y=event.pos
+            x, y = event.pos
         if mouse_down:
             if button == 1:
                 try:

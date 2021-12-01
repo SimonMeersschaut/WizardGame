@@ -49,7 +49,6 @@ class DarkMinds(Entity):
             self.angle = 0
 
         super().__init__((x, y))
-        self.size = (64, 64)
         self.color = color
         # self.img = f'DarkMind_{self.color}.png'
         if not(self.color in list(DarkMinds.IMGS.keys())):

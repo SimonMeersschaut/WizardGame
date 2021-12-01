@@ -1,0 +1,3 @@
+CALL .\env\Scripts\activate.bat
+python main.py
+set /p DUMMY=Hit ENTER to continue...

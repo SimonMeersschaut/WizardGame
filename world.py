@@ -34,7 +34,7 @@ class World:
     map = []
     with open('world.json', 'r') as f:
         (width, height) = load(f)['config']['world_size']
-    square_size = 128
+    square_size = 64
     standables = ['ground', 'ground_bottom', 'spikes_bottom', 'marmer']
     grounds = ['ground.png', 'ground_bottom.png',
                'spikes.png', 'spikes_bottom.png', 'marmer.png']
@@ -61,8 +61,8 @@ class World:
         World.map = [[None for y in range(World.height)]
                      for x in range(World.width)]
         World.current_level = []
-        finish_x = 0
-        finish_y = 1920
+        # finish_x = 0
+        # finish_y = 1920
         GLOBAL.variables['screen'].time_speed = 1
         with open('world.json', 'r') as f:
             print('start')
@@ -76,7 +76,6 @@ class World:
             World.time_limit = time()+100  # time()+file_content[-1]
             World.level_time_limit = time()+100  # file_content[-1]
 
-            finish_x = 0
             for name, x, y in file_content:
                 if not('book' in name):
                     if name in GLOBAL.variables['characters'].NAMES:
@@ -90,29 +89,29 @@ class World:
                 else:
                     book = Book(name)
                     World.map[x][y] = book
-                xpos, ypos = ((x)*World.square_size, (y)*World.square_size)
-                if xpos > finish_x:
-                    if not(name in list(GLOBAL.variables["characters"].NAMES.keys())):
-                        finish_x = xpos
+                xpos, ypos = (x*World.square_size, y*World.square_size)
+         #       if xpos > finish_x:
+         #           if not(name in list(GLOBAL.variables["characters"].NAMES.keys())):
+         #               finish_x = xpos
 
-                    #finish_y = min(finish_y, ypos)
+                #finish_y = min(finish_y, ypos)
                 if type(name) != str or not('book' in name):
                     World.current_level.append([name, xpos, ypos])
                 else:
                     World.current_level.append([book, xpos, ypos])
-            for name, x, y in file_content:
-                xpos, ypos = ((x)*World.square_size, (y)*World.square_size)
-                if xpos == finish_x:
-
-                    finish_y = min(finish_y, ypos)
-        x, y = (int(finish_x/World.square_size),
-                int(finish_y/World.square_size))
-        World.map[x][y-3] = 'finish.png'
-        World.current_level.append(
-            ['finish.png', finish_x, finish_y-2*World.square_size])
+        #    for name, x, y in file_content:
+        #        xpos, ypos = ((x)*World.square_size, (y)*World.square_size)
+        #        if xpos == finish_x:
+#
+        #            finish_y = min(finish_y, ypos)
+        # x, y = (int(finish_x/World.square_size),
+        #        int(finish_y/World.square_size))
+        #World.map[x][y-3] = 'finish.png'
+        # World.current_level.append(
+        #    ['finish.png', finish_x, finish_y-2*World.square_size])
         World.spawn_grass()
         World.set_bottoms()
-        World.finish_x = finish_x
+        # World.finish_x = finish_x
 
         return World.current_level
 
@@ -162,7 +161,7 @@ class World:
         for index, (obj, xpos, ypos) in enumerate(World.current_level):
             if type(obj) == str:
                 Screen.renderIMG(
-                    obj, (xpos-GLOBAL.variables["camera"].x, ypos), resize=2)
+                    obj, (xpos-GLOBAL.variables["camera"].x, ypos), resize=int(World.square_size/64))
             else:
                 obj.render(xpos, ypos)
         width, height = ((World.time_limit-time()) /
@@ -187,6 +186,7 @@ class World:
                                    color=(255, 255, 255), fontsize=40)
         except:
             pass
+        # Screen.renderIMG('finish.png' (World.finish_x, World.finish_y))
 
     def get_square(xpos, ypos):
         xv, yv = (int(xpos/World.square_size), int(ypos/World.square_size))
