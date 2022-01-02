@@ -194,6 +194,12 @@ class Magic:
 
     @Screen.onRender('game')
     def render():
+        print(GLOBAL.variables['screen'].keys)
+        if 'a' in GLOBAL.variables['screen'].keys:
+            print('e')
+            GLOBAL.variables["screen"].time_speed = 0.1
+        else:
+            GLOBAL.variables["screen"].time_speed = 1
         colors = {
             None: [(0, 0, 0), (120, 120, 120)],
             'right': [(20, 20, 20), (200, 200, 200)],

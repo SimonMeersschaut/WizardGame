@@ -94,3 +94,8 @@ class Menu:
         Menu.levels = [Menu.Level(i, (i+1) == unlocked)
                        for i in range(min(GLOBAL.variables['world'].levels, unlocked))]
         #print(f'LEVELS:' + str(GLOBAL.variables['world'].levels))
+
+
+class Map:
+    def render():
+        pass

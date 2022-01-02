@@ -1,0 +1,23 @@
+{
+  "data": {
+    "fps": 120,
+    "index": 12,
+    "k_ball_1": "1073741919",
+    "k_ball_2": "1073741920",
+    "k_ball_3": "1073741921",
+    "k_ball_4": "1073741916",
+    "k_ball_5": "1073741917",
+    "k_ball_6": "1073741918",
+    "k_ball_7": "1073741913",
+    "k_ball_8": "1073741914",
+    "k_ball_9": "1073741915",
+    "k_jump": " ",
+    "k_left": "q",
+    "k_right": "d",
+    "k_sprint": "shift",
+    "k_enchant": "a",
+    "key": "3",
+    "name": "k_ball_9",
+    "unlocked_levels": 1
+  }
+}

@@ -123,6 +123,7 @@ class Screen:
             GLOBAL.variables["main_menu"].render()
         elif Screen.state == 'settings':
             GLOBAL.variables['settings'].render()
+        GLOBAL.variables['story_telling'].render()
         GLOBAL.variables["camera"].render()
         Screen.check_events()
         pygame.display.flip()
@@ -214,10 +215,12 @@ class Screen:
     def draw_line(pos1, pos2, color=(0, 0, 0), width=5):
         pygame.draw.line(Screen.display, color, pos1, pos2, width)
 
-    def render_text(text, x, y, color=(0, 0, 0), fontsize=100):
+    def render_text(text, x, y, color=(0, 0, 0), fontsize=100, font='freesansbold.ttf', bold=False):
         if not(fontsize in list(Screen.fonts.keys())):
+            font = pygame.font.Font(font, fontsize)
+            font.bold = bold
             Screen.fonts.update(
-                {fontsize: pygame.font.Font('freesansbold.ttf', fontsize)})
+                {fontsize: font})
         if not(text in Screen.texts):
             font = Screen.fonts[fontsize]
             Screen.texts.update({text: font.render(text, True, color)})

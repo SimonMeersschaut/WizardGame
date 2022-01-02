@@ -67,14 +67,23 @@ class World:
         return world
 
     def render():
+        global images
         x_pos = 0
         for x in World.levels[World.current_level]:
             y_pos = 0
-            for y in x:
-                if y != None:
-                    colour = World.get_colour_of(y)
-                    pygame.draw.rect(display, colour, (x_pos+offset, y_pos,
-                                     World.Config.block_size[0], World.Config.block_size[1]))
+            for name in x:
+                if name != None:
+                    colour = World.get_colour_of(name)
+                    try:
+                        if not name in images:
+                            img = pygame.image.load('textures/'+name)
+                            img = pygame.transform.scale(
+                                img, World.Config.block_size)
+                            images.update({name: img})
+                        display.blit(images[name], (x_pos, y_pos))
+                    except FileNotFoundError:
+                        pygame.draw.rect(display, colour, (x_pos+offset, y_pos,
+                                                           World.Config.block_size[0], World.Config.block_size[1]))
                 y_pos += World.Config.block_size[1]
             x_pos += World.Config.block_size[0]
 
@@ -102,20 +111,22 @@ def save():
 
 def load():
     files = glob.glob('*.json')
-    if len(files) > 0:
-        file = files[0]
+    if "world.json" in files:
+        file = 'world.json'
         with open(file, 'r') as f:
             inhoud = json.load(f)
+        print(inhoud)
         config = inhoud['config']
         for attr in config:
             setattr(World.Config, attr, config[attr])
-
+        print(inhoud['levels'])
         World.levels = [Level(data) for data in inhoud['levels']]
     else:
         save()
 
 
 # World.create_level()
+images = {}
 load()
 if len(World.Config.colours) == 0:
     World.Config.colours = [(randint(0, 255), randint(
@@ -154,7 +165,8 @@ while running:
             buttons = [function for x1, y1, width, height, function,
                        _, _ in BUTTONS if (x1 < x < x1+width and y1 < y < y1+height)]
             if any(buttons):
-                buttons[0]()
+                for button in buttons:
+                    buttons()
             else:
                 if event.button == 4:
                     selected_block_index += 1
