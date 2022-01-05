@@ -56,7 +56,7 @@ class Wizard:
         #        x_speed = 0
         if all([not(self.world.get_block(pos) in self.world.standables) for pos in [(self.x+51*self.scale, self.y+22*self.scale), (self.x+50*self.scale, self.y+44*self.scale)]]):
             self.x += x_speed
-        else:
+        else:  # if you touch the wall with your right....
             self.x_speed = 0
             go_right = False
             self.x -= 5
@@ -175,15 +175,28 @@ class Wizard:
             self.world.die()
 
 
-class Spawn:
-    def __init__(self, arg):
-        Characters.wizard.x = arg[0]
-        Characters.wizard.y = arg[1]
+class Block:
+    def __init__(self):
+        self.size = [GLOBAL.variables['world'].square_size,
+                     GLOBAL.variables['world'].square_size]
+        #self.x = 0
+        #self.y = 0
+
+
+class Spawn(Block):
+    def __init__(self, args):
+        super().__init__()
+        Characters.wizard.x = args[0]
+        Characters.wizard.y = args[1]
+        self.x = args[0]
+        self.y = args[1]
+        print('new')
         self.exists = False
 
 
-class Finish:
+class Finish(Block):
     def __init__(self, args):
+        super().__init__()
         GLOBAL.variables['world'].finish_x = args[0]
         GLOBAL.variables['world'].finish_y = args[1]
         self.x, self.y = (args[0], args[1])
@@ -210,7 +223,10 @@ class Characters:
             if char.exists:
                 char.renderMe()
             else:
-                Characters.characters.remove(char)
+                try:
+                    Characters.characters.remove(char)
+                except ValueError:  # if the character disapeared
+                    pass
 
     def createNew(*commands):
         name = commands[0]

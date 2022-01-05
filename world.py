@@ -22,7 +22,7 @@ class Book:
         GLOBAL.variables['screen'].draw_rect(
             xpos-GLOBAL.variables["camera"].x, ypos, World.square_size, World.square_size, color=self.rgb)
         Screen.renderIMG('book_blueprint.png',
-                         (xpos-GLOBAL.variables["camera"].x, ypos), resize=2)
+                         (xpos-GLOBAL.variables["camera"].x, ypos), size=2)
 
     def collide(self):
         GLOBAL.variables['magic'].mode = self.color
@@ -34,7 +34,7 @@ class World:
     map = []
     with open('world.json', 'r') as f:
         (width, height) = load(f)['config']['world_size']
-    square_size = 64
+    square_size = 0
     standables = ['ground', 'ground_bottom', 'spikes_bottom', 'marmer']
     grounds = ['ground.png', 'ground_bottom.png',
                'spikes.png', 'spikes_bottom.png', 'marmer.png']
@@ -44,6 +44,8 @@ class World:
     finish_x = 0
 
     def init():
+        print(dir(GLOBAL.variables['settings']))
+        World.square_size = GLOBAL.variables['settings'].square_size
         World.level = 0
         World.world = 0
         World.time_limit = 0
@@ -161,7 +163,7 @@ class World:
         for index, (obj, xpos, ypos) in enumerate(World.current_level):
             if type(obj) == str:
                 Screen.renderIMG(
-                    obj, (xpos-GLOBAL.variables["camera"].x, ypos), resize=int(World.square_size/64))
+                    obj, (xpos-GLOBAL.variables["camera"].x, ypos), size=World.square_size)
             else:
                 obj.render(xpos, ypos)
         width, height = ((World.time_limit-time()) /

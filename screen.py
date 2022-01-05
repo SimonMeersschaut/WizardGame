@@ -1,10 +1,11 @@
+from PIL import Image, ImageDraw
 from math import sqrt
 from json import load
 
 from pygame.constants import SCALED
 from characters import Wizard
 import pygame
-#from pygame.time import Clock
+# from pygame.time import Clock
 from time import time
 from global_variables import GLOBAL
 from settings import Settings
@@ -77,7 +78,7 @@ class Screen:
             Screen.mousePos = pygame.mouse.get_pos()
         if pygame.MOUSEBUTTONUP in Screen.event_types:
             Screen.mouseDown = False
-        #Screen.keys = []
+        # Screen.keys = []
         for event in Screen.events:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
@@ -114,7 +115,7 @@ class Screen:
             Screen.display.fill(Screen.bg_color)
         if Screen.state == 'game':
             Screen.display.blit(Screen.background_image, (0, 0))
-            #Screen.renderIMG('background.jpg', (0-(Camera.x/25),-20), resize=2, full_scale=True, visible=1920)
+            # Screen.renderIMG('background.jpg', (0-(Camera.x/25),-20), resize=2, full_scale=True, visible=1920)
             GLOBAL.variables["world"].render()
             GLOBAL.variables["characters"].render()
             GLOBAL.variables['magic'].render()
@@ -128,13 +129,14 @@ class Screen:
         Screen.check_events()
         pygame.display.flip()
         Screen.clock.tick(Settings.fps)
+
 #  @classmethod
 #  def update(cls):
 #    for (updateState, function) in cls.update_functions:
 #      if cls.state == updateState:
 #        function()
 
-    def loadIMG(path, resize=False, full_scale=False):
+    def loadIMG(path, size=False, full_scale=True):
         path = 'textures/'+path
         if not path in Screen.imgs:
             try:
@@ -142,15 +144,14 @@ class Screen:
             except FileNotFoundError:
                 input('FileNotFound: '+path)
                 raise FileNotFoundError(f'file {path}')
-            if resize:
-                if full_scale:
-                    size = img.get_rect()
-                    # input(resize)
-                    size = (size.size[0]*resize, size.size[1]*resize)
-                    img = Screen.scale_img(img, size)
-                else:
-
-                    img = Screen.scale(img, resize)
+            if size:
+                print(size)
+                #rect = img.get_rect()
+                # input(resize)
+                # (rect.size[0]*size, rect.size[1]*size)
+                #scale = (size/rect.size[0], size/rect.size[1])
+                if type(size) == int or type(size) == float:
+                    img = Screen.scale_img(img, (size, size))
             if path in Screen.NO_ALPHAS:
                 img = img.convert()
             else:
@@ -162,10 +163,10 @@ class Screen:
     def returnImage(path):
         return pygame.image.load("textures/"+path)
 
-    def renderIMG(path, pos, resize=False, full_scale=False, visible=128):
+    def renderIMG(path, pos, size=False, full_scale=False, visible=128):
         if -visible < pos[0] < Screen.window_width:
             if not(path in Screen.imgs):
-                Screen.loadIMG(path, resize=resize, full_scale=full_scale)
+                Screen.loadIMG(path, size=size, full_scale=full_scale)
             Screen.display.blit(Screen.imgs['textures/'+path], pos)
 
     def renderSurface(surface, pos):
@@ -198,7 +199,7 @@ class Screen:
         surf.blit(rotated_image, origin)
 
         # draw rectangle around the image
-        #pygame.draw.rect (surf, (255, 0, 0), (*origin, *rotated_image.get_size()),2)
+        # pygame.draw.rect (surf, (255, 0, 0), (*origin, *rotated_image.get_size()),2)
     def scale_img(surface, size):
         return pygame.transform.scale(surface, size)
 
@@ -214,6 +215,25 @@ class Screen:
 
     def draw_line(pos1, pos2, color=(0, 0, 0), width=5):
         pygame.draw.line(Screen.display, color, pos1, pos2, width)
+
+    def draw_slice(x, y, angle_1=90, angle_2=180, radius=1000, color=(128, 128, 128)):
+        string = f'Slice: {angle_1}, {angle_2}, {color}'
+        x -= radius/2
+        y -= radius/2
+        if not string in Screen.imgs:
+            pil_image = Image.new("RGBA", (radius, radius))
+            pil_draw = ImageDraw.Draw(pil_image)
+            pil_draw.pieslice((0, 0, radius-1, radius-1),
+                              angle_1, angle_2, fill=color)
+            mode = pil_image.mode
+            size = pil_image.size
+            data = pil_image.tobytes()
+
+            image = pygame.image.fromstring(data, size, mode)
+            Screen.imgs.update({string: image})
+        else:
+            image = Screen.imgs[string]
+        Screen.display.blit(image, (x, y))
 
     def render_text(text, x, y, color=(0, 0, 0), fontsize=100, font='freesansbold.ttf', bold=False):
         if not(fontsize in list(Screen.fonts.keys())):
@@ -268,5 +288,5 @@ class Camera:
         elif afstand_midden < -500:  # links
             Camera.x += (afstand_midden)/100
 
-        #Camera.hor_speed += ((GLOBAL.variables["characters"].characters[0].x - Camera.x)-(GLOBAL.variables["screen"].window_width*0.7))/500
-        #Camera.x += Camera.hor_speed
+        # Camera.hor_speed += ((GLOBAL.variables["characters"].characters[0].x - Camera.x)-(GLOBAL.variables["screen"].window_width*0.7))/500
+        # Camera.x += Camera.hor_speed

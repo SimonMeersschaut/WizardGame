@@ -29,7 +29,7 @@ class World:
         backgrounds = []
         blocks = ["monster"]
         world_size = (500, 10)
-        block_size = (64, 64)
+        square_size = (64, 64)
         colours = []
 
     def get_level(data):
@@ -78,18 +78,20 @@ class World:
                         if not name in images:
                             img = pygame.image.load('textures/'+name)
                             img = pygame.transform.scale(
-                                img, World.Config.block_size)
+                                img, (World.Config.square_size,
+                                      World.Config.square_size))
                             images.update({name: img})
-                        display.blit(images[name], (x_pos, y_pos))
+                        display.blit(images[name], (x_pos+offset, y_pos,
+                                                    World.Config.square_size, World.Config.square_size))
                     except FileNotFoundError:
                         pygame.draw.rect(display, colour, (x_pos+offset, y_pos,
-                                                           World.Config.block_size[0], World.Config.block_size[1]))
-                y_pos += World.Config.block_size[1]
-            x_pos += World.Config.block_size[0]
+                                                           World.Config.square_size, World.Config.square_size))
+                y_pos += World.Config.square_size
+            x_pos += World.Config.square_size
 
     def set_block(x, y, name):
-        x = int(x/World.Config.block_size[0])
-        y = int(y/World.Config.block_size[1])
+        x = int(x/World.Config.square_size)
+        y = int(y/World.Config.square_size)
         World.levels[World.current_level].inhoud[x][y] = name
 
 
@@ -166,7 +168,7 @@ while running:
                        _, _ in BUTTONS if (x1 < x < x1+width and y1 < y < y1+height)]
             if any(buttons):
                 for button in buttons:
-                    buttons()
+                    button()
             else:
                 if event.button == 4:
                     selected_block_index += 1

@@ -42,7 +42,11 @@ class Settings:
     for index, (name, key) in enumerate(keys):
         if name in data:
             keys[index][1] = data[name]
-    attrs = attrs + keys
+    with open('world.json') as f:
+        config = load(f)['config']
+    config = [[key, value]
+              for key, value in zip(list(config.keys()), list(config.values()))]
+    attrs = attrs + keys + config
 
     @classmethod
     def init(cls):

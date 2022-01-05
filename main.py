@@ -8,8 +8,8 @@ from global_variables import GLOBAL
 from book import Book
 from story_telling import Story_telling
 
-GLOBAL.variables.update({"screen": Screen, "characters": Characters, "world": World,
-                        "settings": Settings, "main_menu": Menu, "camera": Camera, "magic": Magic, "book": Book, "story_telling": Story_telling})
+GLOBAL.variables.update({"screen": Screen, "characters": Characters,
+                        "settings": Settings, "world": World, "main_menu": Menu, "camera": Camera, "magic": Magic, "book": Book, "story_telling": Story_telling})
 
 for module in GLOBAL.variables.values():
     module.init()
