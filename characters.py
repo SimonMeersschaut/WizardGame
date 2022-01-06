@@ -175,37 +175,7 @@ class Wizard:
             self.world.die()
 
 
-class Block:
-    def __init__(self):
-        self.size = [GLOBAL.variables['world'].square_size,
-                     GLOBAL.variables['world'].square_size]
-        #self.x = 0
-        #self.y = 0
 
-
-class Spawn(Block):
-    def __init__(self, args):
-        super().__init__()
-        Characters.wizard.x = args[0]
-        Characters.wizard.y = args[1]
-        self.x = args[0]
-        self.y = args[1]
-        print('new')
-        self.exists = False
-
-
-class Finish(Block):
-    def __init__(self, args):
-        super().__init__()
-        GLOBAL.variables['world'].finish_x = args[0]
-        GLOBAL.variables['world'].finish_y = args[1]
-        self.x, self.y = (args[0], args[1])
-        self.exists = True
-        self.img = GLOBAL.variables['screen'].returnImage('finish.png')
-
-    def renderMe(self):
-        GLOBAL.variables['screen'].renderSurface(
-            self.img, (self.x-GLOBAL.variables['camera'].x, self.y))
 
 
 class Characters:

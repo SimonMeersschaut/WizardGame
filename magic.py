@@ -8,7 +8,8 @@ from math import sqrt, cos, sin, radians, degrees, atan
 
 
 class Shield:
-    MAX_TIME = 5
+    # MAX_TIME = 5
+    ICON_IMAGE = 'shield_icon.png'
 
     def __init__(self, x, y):
         self.image = 'Shield.png'
@@ -19,8 +20,8 @@ class Shield:
         self.created = time()
 
     def render(self):
-        if time()-self.created > Shield.MAX_TIME:
-            self.exists = False
+        # if time()-self.created > Shield.MAX_TIME:
+        #    self.exists = False
         Screen.renderIMG(
             self.image, (self.x-GLOBAL.variables["camera"].x, self.y))
 
@@ -30,17 +31,27 @@ class Shield:
             obj.reverse()
             self.exists = False
 
+    def cancel(self):
+        self.exists = False
+
 
 class Shoot:
     MAX_TIME = 5
-    BACKFIRE = 40
 
-    def __init__(self, x, y):
+    BACKFIRE = 10
+    SPEED = 0.1
+
+    def __init__(self, x, y, long_press=False):
+        if long_press:
+            print('LONG PRESS!!')
         self.x = x
         self.y = y
+        self.long_press = long_press
         self.exists = True
         self.size = (GLOBAL.variables['world'].square_size,
                      GLOBAL.variables['world'].square_size)
+        # if long_press:
+        #    self.size = (self.size[0]*2, self.size[1]*2)
         self.image = 'shoot.png'
         self.created = time()
         for x in range(int(self.x), int(self.x)-self.direction[0]*Shoot.BACKFIRE*2, GLOBAL.variables['world'].square_size):
@@ -48,22 +59,24 @@ class Shoot:
                 if GLOBAL.variables['world'].get_block(x, y) in GLOBAL.variables['world'].grounds:
                     self.exists = False
         if self.exists:
-            GLOBAL.variables['characters'].wizard.x_speed += self.direction[0]*Shoot.BACKFIRE
-            GLOBAL.variables['characters'].wizard.y_speed += self.direction[1]*Shoot.BACKFIRE
-        print(GLOBAL.variables['characters'].wizard.x_speed)
+            GLOBAL.variables['characters'].wizard.x_speed = self.direction[0]*Shoot.BACKFIRE
+            GLOBAL.variables['characters'].wizard.y_speed = self.direction[1]*Shoot.BACKFIRE
+        # print(GLOBAL.variables['characters'].wizard.x_speed)
 
     def render(self):
-        if time()-self.created > Shield.MAX_TIME:
+        if time()-self.created > Shoot.MAX_TIME or self.y > 1920 or self.x < 0:
             self.exists = False
         Screen.renderIMG(
             self.image, (self.x-GLOBAL.variables["camera"].x, self.y))
-        self.x -= Shoot.BACKFIRE/4*self.direction[0]
-        self.y -= Shoot.BACKFIRE/4*self.direction[1]
+        self.x -= Shoot.BACKFIRE/4 * \
+            self.direction[0]*GLOBAL.variables["screen"].frame_speed
+        self.y -= Shoot.BACKFIRE/4 * \
+            self.direction[1]*GLOBAL.variables["screen"].frame_speed
         if GLOBAL.variables['world'].get_block(self.x, self.y) == 'marmer':
             GLOBAL.variables['world'].delete_block(self.x, self.y)
             # GLOBAL.variables['world'].map = None
-        else:
-            print(GLOBAL.variables['world'].get_block(self.x, self.y))
+        # else:
+        #    print(GLOBAL.variables['world'].get_block(self.x, self.y))
 
     def hit(self, obj):
         if type(obj) == DarkMinds:
@@ -72,27 +85,35 @@ class Shoot:
 
 
 class Shoot_left(Shoot):
-    def __init__(self, x, y):
+    LONG_PRESS_TIME = 5
+
+    def __init__(self, x, y, long_press=False):
         self.direction = (1, 0)
-        super().__init__(x, y)
+        super().__init__(x, y, long_press=long_press)
 
 
 class Shoot_right(Shoot):
-    def __init__(self, x, y):
+    LONG_PRESS_TIME = 5
+
+    def __init__(self, x, y, long_press=False):
         self.direction = (-1, 0)
-        super().__init__(x, y)
+        super().__init__(x, y, long_press=long_press)
 
 
 class Shoot_up(Shoot):
-    def __init__(self, x, y):
+    LONG_PRESS_TIME = 5
+
+    def __init__(self, x, y, long_press=False):
         self.direction = (0, 1)
-        super().__init__(x, y)
+        super().__init__(x, y, long_press=long_press)
 
 
 class Shoot_down(Shoot):
-    def __init__(self, x, y):
+    LONG_PRESS_TIME = 5
+
+    def __init__(self, x, y, long_press=False):
         self.direction = (0, -1)
-        super().__init__(x, y)
+        super().__init__(x, y, long_press=long_press)
 
 
 class Dash:
@@ -140,6 +161,17 @@ class Dash_down(Dash):
         super().__init__(x, y)
 
 
+class Floor():
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.exists = True
+        self.size = (32, 32)
+
+    def render(self):
+        pass
+
+
 class Magic:
     # SPELLS
     # CODE:(OBJECT, MP)
@@ -150,7 +182,8 @@ class Magic:
             {'object': Dash_right, 'points': 1},
             {'object': Dash_left, 'points': 1},
             {'object': Dash_up, 'points': 1},
-            {'object': Dash_down, 'points': 1}
+            {'object': Dash_down, 'points': 1},
+            {'object': Floor, 'points': 1}
             # "14":(None, 0)
         ],
         'red': [
@@ -167,8 +200,12 @@ class Magic:
     spawned = False
     used_balls = False
     start_position = (0, 0)
-    last_spell = 0
-    spell_ended = 0
+    mouse_down_time = False
+    selected_spell = None
+    injuring = False
+
+    injuring_last_index = None
+    INJURING_TIME_SPEED = 0.05
     CIRCLE_DIST = 50
     CIRCLE_RADIUS = 20
     COLORS = {
@@ -178,95 +215,169 @@ class Magic:
 
     def init():
         Magic.points = 4
-        Magic.injuring = True
-        Magic.key_down = False
+        Magic.mouse_down = True
+        Magic.mouse_down_time = None
         # Magic.available_spels = []  # spells available at the time
         Magic.current_spells = []  # spells (rendering) in the world right now
         Magic.mode = 'red'
 
-        Magic.CIRCLE_OFFSET = (Magic.CIRCLE_DIST*1.5, Magic.CIRCLE_DIST*2.5)
-        Magic.combination = None
+        # Magic.CIRCLE_OFFSET = (Magic.CIRCLE_DIST*1.5, Magic.CIRCLE_DIST*2.5)
+        # Magic.combination = None
 
         # Generate ball positions
-        Magic.activated_balls = []
-        Magic.ball_positions = []
-        for y in range(-2*Magic.CIRCLE_DIST, 1*Magic.CIRCLE_DIST, Magic.CIRCLE_DIST):
-            for x in range(-1*Magic.CIRCLE_DIST, 2*Magic.CIRCLE_DIST, Magic.CIRCLE_DIST):
-                Magic.ball_positions.append(
-                    (x+Magic.CIRCLE_OFFSET[0], y+Magic.CIRCLE_OFFSET[1]))
+        #  Magic.activated_balls = []
+        #  Magic.ball_positions = []
+        #   for y in range(-2*Magic.CIRCLE_DIST, 1*Magic.CIRCLE_DIST, Magic.CIRCLE_DIST):
+        #      for x in range(-1*Magic.CIRCLE_DIST, 2*Magic.CIRCLE_DIST, Magic.CIRCLE_DIST):
+        #          Magic.ball_positions.append(
+        #              (x+Magic.CIRCLE_OFFSET[0], y+Magic.CIRCLE_OFFSET[1]))
 
     @Screen.onRender('game')
     def render():
-        print([
-            available_spell['object'].__name__ for available_spell in Magic.SPELLS[Magic.mode]])
+        # print([
+        #    available_spell['object'].__name__ for available_spell in Magic.SPELLS[Magic.mode]])
 
         unlocked_spells = [spell for spell in GLOBAL.variables["settings"].unlocked_spells if spell in [
             available_spell['object'].__name__ for available_spell in Magic.SPELLS[Magic.mode]]]
+        # if GLOBAL.variables["settings"].k_enchant in Screen.keys and not Magic.injuring:
+        #    Magic.injuring = True
+        #    Magic.mouse_down_time = False
+        # elif not GLOBAL.variables['screen'].mouseDown and Magic.mouse_down_time:
+        #    Magic.injuring = False
+        #    Magic.mouse_down_time = time()
+
         if GLOBAL.variables["settings"].k_enchant in Screen.keys:
-            Magic.key_down = True
-        elif not Magic.injuring:
-            Magic.key_down = False
-        if Magic.key_down:
-            if Magic.injuring:
-                if GLOBAL.variables["screen"].time_speed != 0.1:
-                    GLOBAL.variables["screen"].time_speed = 0.1
-                P1 = (GLOBAL.variables["screen"].window_width/2,
-                      GLOBAL.variables["screen"].window_height/2)
-                P2 = GLOBAL.variables["screen"].mousePos
-                angle = 0
-                if P2[0] > P1[0]:
-                    angle = degrees(atan((P2[1]-P1[1])/(P2[0]-P1[0])))
-                elif P2[0] == P1[0]:
-                    if P2[1] > P1[1]:
-                        angle = 90
-                    if P2[1] > P1[1]:
-                        angle = 270
-                elif P2[0] < P1[0]:
-                    angle = 180+degrees(atan((P2[1]-P1[1])/(P2[0]-P1[0])))
-                if angle < 0:
-                    angle = 360-abs(angle)
+            Magic.injuring = True
+            # if GLOBAL.variables["screen"].time_speed != 0.1:
+            GLOBAL.variables["screen"].time_speed = Magic.INJURING_TIME_SPEED
+            P1 = (GLOBAL.variables["screen"].window_width/2,
+                  GLOBAL.variables["screen"].window_height/2)
+            P2 = GLOBAL.variables["screen"].mousePos
+            angle = 0
+            if P2[0] > P1[0]:
+                angle = degrees(atan((P2[1]-P1[1])/(P2[0]-P1[0])))
+            elif P2[0] == P1[0]:
+                if P2[1] > P1[1]:
+                    angle = 90
+                if P2[1] > P1[1]:
+                    angle = 270
+            elif P2[0] < P1[0]:
+                angle = 180+degrees(atan((P2[1]-P1[1])/(P2[0]-P1[0])))
+            if angle < 0:
+                angle = 360-abs(angle)
 
-            # try:
-            #    angle = degrees(atan(-y_delta/x_delta))
-            #    if y_delta > 0:
-            #        angle = 270+angle
-            #    print(angle)
-            # except ZeroDivisionError:  # if the cursor didn't move at all
-            #    angle = 0
-            #    print('no angle')
-                angle_1 = 0
-                for index, name in enumerate(unlocked_spells):
-                    angle_2 = angle_1 + (360/len(unlocked_spells))
+        # try:
+        #    angle = degrees(atan(-y_delta/x_delta))
+        #    if y_delta > 0:
+        #        angle = 270+angle
+        #    print(angle)
+        # except ZeroDivisionError:  # if the cursor didn't move at all
+        #    angle = 0
+        #    print('no angle')
+            angle_1 = 0
+            for index, name in enumerate(unlocked_spells):
+                angle_2 = angle_1 + (360/len(unlocked_spells))
 
-                    if len(unlocked_spells) > 1:
-                        angle_2 -= 5
-                        angle_1 += 5
-                    if angle_1 < angle < angle_2:
-                        color = (20, 20, 20)
-                        if GLOBAL.variables['screen'].mouseDown:
-                            Magic.injuring = False
-                            Magic.perform_spell(unlocked_spells[index])
-                    else:
-                        color = (10, 10, 100)
-                    x = 1920/2 + cos(radians((angle_1+angle_2)/2))*10
-                    y = 1080/2 + sin(radians((angle_1+angle_2)/2))*10
+                # if len(unlocked_spells) > 1:
+                #    angle_2 -= 5
+                #    angle_1 += 5
 
-                    Screen.draw_slice(x, y, angle_1=angle_1,
-                                      angle_2=angle_2, color=color)
-                    angle_1 += (360-5*(len(unlocked_spells)-1)) / \
-                        len(unlocked_spells)
-            else:
-                GLOBAL.variables["screen"].time_speed = 1
+                if angle_1 < angle < angle_2:  # when hovering
+                    color = (120, 120, 120)
+                    if Magic.injuring_last_index != index or not Magic.mouse_down_time:
+                        Magic.mouse_down_time = time()
+                    Magic.injuring_last_index = index
+
+                else:  # default color
+                    color = (135, 135, 135)
+
+                if 'shield' in name.lower():
+                    for spell in Magic.current_spells:
+                        if type(spell) == Shield:  # if another shield is already activated
+                            color = (100, 100, 100)
+                middle_angle = (angle_1+angle_2)/2
+                x = 1920/2 + cos(radians(middle_angle)) * \
+                    (10)  # +(angle-middle_angle)
+                y = 1080/2 + sin(radians(middle_angle)) * \
+                    (10)
+                # print(angle_1)
+                Screen.draw_slice(x, y, angle_1=angle_1+5,
+                                  angle_2=angle_2-5, radius=200, color=color)
+                # angle_1 += (360-5*(len(unlocked_spells)-1))
+
+                # if angle_1 < angle < angle_2:
+                #    if Magic.mouse_down_time:
+                #        if time()-Magic.mouse_down_time > 0.1:
+                #            # print(Magic.mouse_down_time)
+                #            # print('f'+str(Magic.get_spell_by_name(unlocked_spells[index])[
+                #            #    'object'].LONG_PRESS_TIME))
+                #            # print((time()-Magic.mouse_down_time))
+                #            try:
+                #                radius = round(
+                #                    200*min(1, ((time()-Magic.mouse_down_time)/Magic.get_spell_by_name(name)['object'].LONG_PRESS_TIME)))
+                #                # print(radius)
+                #                Screen.draw_slice(x, y, angle_1=angle_1+5,
+                #                                  angle_2=angle_2-5, radius=radius, color=(0, 0, 0))
+                #            except AttributeError:
+                #                pass
+                try:
+                    image = Magic.get_spell_by_name(name)['object'].ICON_IMAGE
+                    x = 1920/2 + cos(radians((angle_1+angle_2)/2))*50
+                    y = 1080/2 + sin(radians((angle_1+angle_2)/2))*50
+                    GLOBAL.variables["screen"].renderIMG(image, (x, y))
+                except AttributeError:
+                    pass
+                angle_1 += 360/len(unlocked_spells)  # /len(unlocked_spells)
+            Magic.selected_spell = unlocked_spells[Magic.injuring_last_index]
         else:
             GLOBAL.variables["screen"].time_speed = 1
-            Magic.injuring = True
+            if Magic.injuring:
+                Magic.injuring = False
+
+        if Magic.mouse_down and GLOBAL.variables["screen"].mouseDown:
+            Magic.mouse_down = False
+            Magic.mouse_down_time = time()
+        if not GLOBAL.variables["screen"].mouseDown:
+            print('mouse')
+            if Magic.injuring_last_index != None:
+                print('i,ndex')
+                available = True
+                if not Magic.mouse_down:  # and Magic.injuring
+                    Magic.mouse_down = True
+                    if 'shield' in Magic.selected_spell.lower():
+                        for spell in Magic.current_spells:
+                            if type(spell) == Shield:
+                                available = False
+                                print('!CANCELED........')
+                                spell.cancel()
+                    if available:
+                        try:
+                            long_press_time = Magic.get_spell_by_name(
+                                Magic.selected_spell)['object'].LONG_PRESS_TIME
+                        except AttributeError:
+                            long_press_time = False
+                        if long_press_time and time()-Magic.mouse_down_time > long_press_time:
+
+                            Magic.perform_spell(
+                                Magic.selected_spell, long_press=True)
+                        else:
+                            Magic.perform_spell(
+                                Magic.selected_spell)
+            #Magic.mouse_down_time = None
+            #Magic.injuring = False
+
+        # else:
+        #    GLOBAL.variables["screen"].time_speed = 1
+#
+        #    Magic.injuring = True
+        #    Magic.mouse_down_time = False
 
         # colors = {
         #    None: [(0, 0, 0), (120, 120, 120)],
         #    'right': [(20, 20, 20), (200, 200, 200)],
         #    'no points': [(80, 80, 80), (255, 100, 100)]
         # }
-        #autocomplete = Magic.autocomplete()
+        # autocomplete = Magic.autocomplete()
         # if Magic.injuring:
         #    for index, position in enumerate(Magic.ball_positions):
         #        if not(GLOBAL.variables['characters'].wizard.touched_ground):
@@ -289,13 +400,13 @@ class Magic:
         #            x += 100
         #    # if Magic.points < 50:
         #    #  Magic.points += Screen.frame_speed*max(time()-Magic.last_spell, 5)
-        # for spell in Magic.current_spells:
-        #    if spell.render and spell.exists:
-        #        spell.render()
-        #    else:
-        #        Magic.current_spells.remove(spell)
+        for spell in Magic.current_spells:
+            if spell.render and spell.exists:
+                spell.render()
+            else:
+                Magic.current_spells.remove(spell)
         # RENDER LOADING BAR
-        #x, y = (GLOBAL.variables['screen'].window_width-210, 10)
+        # x, y = (GLOBAL.variables['screen'].window_width-210, 10)
         # GLOBAL.variables['screen'].draw_rect(
         #    Screen.window_width-220, y, Magic.points*2, 40)
 
@@ -375,15 +486,19 @@ class Magic:
         for spell in Magic.SPELLS[Magic.mode]:
             if spell['object'].__name__ == spell_name:
                 return spell
-            else:
-                print(spell['object'].__name__)
+            # else:
+            #    print(spell['object'].__name__)
 
-    def perform_spell(spell_name):
+    def perform_spell(spell_name, long_press=False):
         print(spell_name)
         spell = Magic.get_spell_by_name(spell_name)
         if spell != None:
-            Magic.current_spells.append(spell['object'](
-                GLOBAL.variables['characters'].wizard.x+63, GLOBAL.variables['characters'].wizard.y+24))
+            try:
+                Magic.current_spells.append(spell['object'](
+                    GLOBAL.variables['characters'].wizard.x+63, GLOBAL.variables['characters'].wizard.y+24, long_press=long_press))
+            except TypeError:
+                Magic.current_spells.append(spell['object'](
+                    GLOBAL.variables['characters'].wizard.x+63, GLOBAL.variables['characters'].wizard.y+24))
     # def check_spell():
     #    wizard = GLOBAL.variables['characters'].wizard
     #    spell_combination = ''.join([str(number)

@@ -217,7 +217,7 @@ class Screen:
         pygame.draw.line(Screen.display, color, pos1, pos2, width)
 
     def draw_slice(x, y, angle_1=90, angle_2=180, radius=1000, color=(128, 128, 128)):
-        string = f'Slice: {angle_1}, {angle_2}, {color}'
+        string = f'Slice: {angle_1}, {angle_2}, {color}, {radius}'
         x -= radius/2
         y -= radius/2
         if not string in Screen.imgs:
